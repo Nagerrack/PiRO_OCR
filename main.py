@@ -46,7 +46,7 @@ def main():
     result = apply_mask(rep, gray)
 
     display_image(result, 24)
-
+    
 
 if __name__ == "__main__":
     main()
