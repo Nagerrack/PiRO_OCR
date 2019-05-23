@@ -109,7 +109,7 @@ venv.bak/
 .mypy_cache/
 
 # photos
-.png
-.jpg
+*.png
+*.jpg
 
 .ipynb_checkpoints/
