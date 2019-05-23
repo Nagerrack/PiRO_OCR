@@ -45,7 +45,7 @@ def main():
 
 
     plt.imshow(result, cmap='gray')
-    cv2.imwrite('result.png', rep)
+    cv2.imwrite('result.png', result)
     plt.show()
 
 if __name__ == "__main__":
