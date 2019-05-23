@@ -1,6 +1,5 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import cv2
+from image_io import  *
 
 
 def remove_background(img):
@@ -15,6 +14,7 @@ def detect_lines(img, thresh):
     # suma w wierszach i przeskalowanie zakresu wartości
     integral = np.sum(thresh, axis=1)
     integral = integral / np.max(integral) * 255
+
     # utworzenie obrazu o oryginalnym rozmiarze
     rep = np.transpose(np.tile(integral, (img.shape[1], 1)))
     rep = np.uint8(rep / np.max(rep) * 255)
@@ -35,18 +35,18 @@ def apply_mask(rep, img):
 
 
 def main():
-    img = cv2.imread('data/img_24.jpg')
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    imgs = read_particular_images("data", [24])
+    # imgs = read_entire_data_set("data", 29)
+
+    gray = cv2.cvtColor(imgs[0], cv2.COLOR_BGR2GRAY)
 
     thresh = remove_background(gray)
-    rep = detect_lines(img, thresh)
+    rep = detect_lines(imgs[0], thresh)
     rep = broaden_lines(rep)
     result = apply_mask(rep, gray)
 
+    display_image(result, 24)
 
-    plt.imshow(result, cmap='gray')
-    cv2.imwrite('result.png', rep)
-    plt.show()
 
 if __name__ == "__main__":
     main()
