@@ -1,5 +1,6 @@
 import numpy as np
 from image_io import  *
+from surrounding_removal import remove_surrounding
 
 
 def remove_background(img):
@@ -38,15 +39,17 @@ def main():
     imgs = read_particular_images("data", [24])
     # imgs = read_entire_data_set("data", 29)
 
-    gray = cv2.cvtColor(imgs[0], cv2.COLOR_BGR2GRAY)
+    img = remove_surrounding(imgs[0])
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     thresh = remove_background(gray)
-    rep = detect_lines(imgs[0], thresh)
+    rep = detect_lines(img, thresh)
     rep = broaden_lines(rep)
     result = apply_mask(rep, gray)
 
     display_image(result, 24)
-    
+
 
 if __name__ == "__main__":
     main()
