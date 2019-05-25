@@ -78,28 +78,28 @@ def detect_one_img(img):
     blur_1 = cv2.blur(img, k1_size)
     th = cv2.adaptiveThreshold(blur_1, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
                                cv2.THRESH_BINARY, ta_1, tuv_1)
-    # show(th)
+    #show(th)
     # remove grid and threshold artefact's
     blur_2 = cv2.blur(th, k2_size)  #
     th2 = cv2.adaptiveThreshold(blur_2, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
                                 cv2.THRESH_BINARY, ta_2, tuv_2)
-    # show(th2)
+    #show(th2)
     # experimental - join text in one shape
     er = cv2.erode(th2, kernel, iterations=30)  # join text
-    # show(er)
+    #show(er)
     dil = cv2.dilate(er, kernel, iterations=60)  # destroy point out of text area
-    # show(dil)
+    #show(dil)
     er2 = cv2.erode(dil, kernel, iterations=30)  # rebuild text shape
-    # show(er2, img)
+    #show(er2, img)
 
     mask = np.where(er2 < 127)
     max1, max2 = np.max(mask, axis=-1)
     min1, min2 = np.min(mask, axis=-1)
 
-    min1 = max( int(min1 - img.shape[0] * 0.03), 0)
-    min2 = max(int(min2 - img.shape[1] * 0.06), 0)
-    max1 = min(int(max1 + img.shape[0] * 0.03), img.shape[0]-1)
-    max2 = min(int(max2 + img.shape[1] * 0.06), img.shape[1]-1)
+    min1 = max( int(min1 - img.shape[0] * 0.08), 0)
+    min2 = max(int(min2 - img.shape[1] * 0.08), 0)
+    max1 = min(int(max1 + img.shape[0] * 0.08), img.shape[0]-1)
+    max2 = min(int(max2 + img.shape[1] * 0.08), img.shape[1]-1)
     rect = img[min1:max1, min2:max2]
     # show(rect)
     # res = np.where(er2 < 127, img, 0)
