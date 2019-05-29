@@ -23,7 +23,7 @@ def remove_vert_surrounding(img, img_hsv):
     else:
         rows_to_delete = [i for i in range(sats.shape[0]) if np.mean(sats[i]) > global_mean_sats]
 
-    return np.delete(img, rows_to_delete, 0)
+    return np.delete(img, rows_to_delete, 0), rows_to_delete
 
 
 def remove_horiz_surrounding(img, img_hsv):
@@ -39,6 +39,7 @@ def remove_horiz_surrounding(img, img_hsv):
     global_mean_hues = np.mean(means_hues) * 0.75
 
     cols_to_delete = [i for i, hue in enumerate(hues_t) if np.mean(hue) < global_mean_hues]
+    deleted_cols = cols_to_delete
 
     img = np.delete(img, cols_to_delete, 1)
     img_hsv = np.delete(img_hsv, cols_to_delete, 1)
@@ -59,14 +60,16 @@ def remove_horiz_surrounding(img, img_hsv):
 
     cols_to_delete = [i for i, mean in enumerate(means_sats_left) if mean > global_mean_sats]
     cols_to_delete.extend([i + right_cut - 1 for i, mean in enumerate(means_sats_right) if mean > global_mean_sats])
+    deleted_cols.extend(cols_to_delete)
 
-    return np.delete(img, cols_to_delete, 1)
+    return np.delete(img, cols_to_delete, 1), deleted_cols
 
 
 def remove_surrounding(img):
     img_hsv = rgb2hsv(img)
+    deleted = {'rows': 0, 'columns': 0}
 
-    img = remove_vert_surrounding(img, img_hsv)
-    img = remove_horiz_surrounding(img, img_hsv)
+    img, deleted['rows'] = remove_vert_surrounding(img, img_hsv)
+    img, deleted['columns'] = remove_horiz_surrounding(img, img_hsv)
 
-    return img
+    return img, deleted

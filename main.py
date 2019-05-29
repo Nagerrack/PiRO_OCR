@@ -167,7 +167,7 @@ class Piromain():
         for i in range(1, 30):
             imgs = read_particular_images("data", [i])
             img = self.swap_channel(imgs[0])
-            img = remove_surrounding(img)
+            img, deleted = remove_surrounding(img)
             show(img)
             print(i)
             self.get_global_params(img)
