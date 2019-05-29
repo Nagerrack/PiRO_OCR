@@ -1,7 +1,5 @@
-import numpy as np
 import cv2
-import matplotlib.pyplot as plt
-from surrounding_removal import remove_surrounding
+import numpy as np
 
 
 def show(img, img2=None):
@@ -101,7 +99,7 @@ def detect():
         # cv2.imwrite('output/' + str(x) + '.png', rotated)
 
 
-def detect_one_img(img):
+def detect_one_img(img, retNaive=False):
     img = img.copy()
     k1_size = (5, 5)
     ta_1 = 9
@@ -151,7 +149,9 @@ def detect_one_img(img):
     box = cv2.boxPoints(ret)  # cv2.boxPoints(rect) for OpenCV 3.x
 
     M = cv2.getRotationMatrix2D((cx, cy), ang, 1.0)
-
+    if retNaive:
+        rect = img[min1:max1, min2:max2]
+        return rect, box, M
     return box, M
 
 

@@ -1,6 +1,7 @@
 import os
-import matplotlib.pyplot as plt
+
 import cv2
+import matplotlib.pyplot as plt
 
 
 def read_image(path, filename):

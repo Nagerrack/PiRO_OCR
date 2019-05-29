@@ -1,5 +1,6 @@
-from skimage.color import rgb2hsv
 import numpy as np
+from skimage.color import rgb2hsv
+
 
 def remove_vert_surrounding(img, img_hsv):
     hues = img_hsv[:, :, 0]
@@ -17,12 +18,10 @@ def remove_vert_surrounding(img, img_hsv):
     means_sats = [np.mean(sats_short[i]) for i in range(sats_short.shape[0] // 2)]
     global_mean_sats = np.mean(means_sats) * 2.4
 
-
     if global_mean_hues > 0.4 and global_mean_sats > 0.15:
         rows_to_delete = [i for i in range(hues.shape[0]) if np.mean(hues[i]) < global_mean_hues]
     else:
         rows_to_delete = [i for i in range(sats.shape[0]) if np.mean(sats[i]) > global_mean_sats]
-
 
     return np.delete(img, rows_to_delete, 0)
 
@@ -57,7 +56,6 @@ def remove_horiz_surrounding(img, img_hsv):
 
     means_sats = [np.mean(sats_t_short[i]) for i in range(sats_t_short.shape[0] // 2)]
     global_mean_sats = np.mean(means_sats) * 7
-
 
     cols_to_delete = [i for i, mean in enumerate(means_sats_left) if mean > global_mean_sats]
     cols_to_delete.extend([i + right_cut - 1 for i, mean in enumerate(means_sats_right) if mean > global_mean_sats])
