@@ -12,12 +12,12 @@ def show(img, img2=None):
             cv2.imshow('win2', im2)
 
 
-def naive_approximate_rectanlge_points(img, margin):
+def naive_approximate_rectanlge_points(img, margin, lmargin=0.04):
     mask = np.where(img < 127)
     max1, max2 = np.max(mask, axis=-1)
     min1, min2 = np.min(mask, axis=-1)
     min1 = max(int(min1 - img.shape[0] * margin), 0)
-    min2 = max(int(min2 - img.shape[1] * margin), 0)
+    min2 = max(int(min2 - img.shape[1] * lmargin), 0)
     max1 = min(int(max1 + img.shape[0] * margin), img.shape[0] - 1)
     max2 = min(int(max2 + img.shape[1] * margin), img.shape[1] - 1)
     return min1, max1, min2, max2
@@ -128,7 +128,7 @@ def detect_one_img(img, retNaive=False):
     er2 = cv2.erode(dil, kernel, iterations=er_iter_2)  # rebuild text
 
     # create rectangle mask to remove outliers
-    min1, max1, min2, max2 = naive_approximate_rectanlge_points(er2, r_margin)
+    min1, max1, min2, max2 = naive_approximate_rectanlge_points(er2, r_margin, lmargin=r_margin)
     mask = np.full(img.shape, 255, np.uint8)
     mask[min1:max1, min2:max2] = 0
 
@@ -150,6 +150,7 @@ def detect_one_img(img, retNaive=False):
 
     M = cv2.getRotationMatrix2D((cx, cy), ang, 1.0)
     if retNaive:
+        min1, max1, min2, max2 = naive_approximate_rectanlge_points(er2, r_margin, lmargin=0.04)
         rect = img[min1:max1, min2:max2]
         return rect, box, M
     return box, M
