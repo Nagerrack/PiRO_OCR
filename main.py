@@ -16,25 +16,25 @@ class Piromain():
             for i in range(0, len(lines)):
                 l = lines[i][0]
                 cv2.line(cdst, (l[0], l[1]), (l[2], l[3]), (255, 255, 255), 3, cv2.LINE_AA)
-        ###show(can)
+        ##show(can)
         img = np.uint8(can - cdst)
-        ###show(img)
+        ##show(img)
         thresh = cv2.adaptiveThreshold(img, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,
                                        self.adaptiveThreshBlockSize, self.adaptiveThreshholdAddVal)
-        ###show(img)
+        ##show(img)
         return thresh
 
     def detect_lines(self, img, thresh):
-        #####show(thresh)
+        ##show(thresh)
         thresh = cv2.bitwise_not(thresh)
         kernel = np.array([[1] * self.kernelLen])
         thresh = cv2.filter2D(thresh, 5, kernel)
-        #####show(thresh)
+        ##show(thresh)
         thresh = np.uint8(thresh)
-        #####show(thresh)
+        ##show(thresh)
         thresh = cv2.erode(thresh, kernel=np.ones(shape=(3, 1)))
         thresh = cv2.bitwise_not(thresh)
-        #####show(thresh)
+        ##show(thresh)
         # suma w wierszach i przeskalowanie zakresu wartości
         integral = np.sum(thresh, axis=1)
         integral = integral / np.max(integral) * 255
@@ -47,7 +47,7 @@ class Piromain():
 
     def broaden_lines(self, rep):
         # progowanie w punkcie średniej obrazu i rozszerzenie obszarów białych
-        #show(rep)
+        ##show(rep)
         h,w =np.shape(rep)
         start=0
         mean = np.mean(rep)
@@ -62,16 +62,16 @@ class Piromain():
         start = end
 
         #print(start)
-        #show(rep)
+        ##show(rep)
         end= h-int(h/8*(1))
         ret, th = cv2.threshold(rep[start:end], np.mean(np.mean(rep[start:end])), 255, cv2.THRESH_BINARY)
         rep[start:end] = th
-        #show(rep)
+        ##show(rep)
         start = end
         end = h-1
         ret, th = cv2.threshold(rep[start:end], np.mean(np.mean(rep[start:end])) * 0.98, 255, cv2.THRESH_BINARY)
         rep[start:end] = th
-        ####show(rep)
+        ##show(rep)
 
         #ret, rep = cv2.threshold(rep, np.mean(rep), 255, cv2.THRESH_BINARY)
         rep = cv2.erode(rep, kernel=np.ones(shape=(3, 1)))
@@ -90,6 +90,11 @@ class Piromain():
             borderUp = contours[ind][0][0][1] - contours[ind + 1][1][0][1]
         return borderUp * width, borderDown * width
 
+    def checkIfAtTheEnd(self, contours, i, img, threshVal=0):
+        borderUp, borderDown=self.findBorderLengthsOfContour(contours, i, img)
+        if borderUp<threshVal or borderDown<threshVal:
+            return True
+        return False
     def detectContoursForCols(self, img):
         im2, contoursB, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -98,50 +103,86 @@ class Piromain():
 
         # delete 2 rows overlapping
         contourAres = [cv2.contourArea(cont) for cont in contours]
-        area = np.mean(np.sort(contourAres)[int(0.25 * len(contourAres)):int(np.ceil(0.75 * len(contourAres)))])
+        area = np.shape(img)[0] * np.shape(img)[1]
+        h,w = np.shape(img)
+        numb = 3
+        if len(contours)>1:
+            ind = -1
+            if contours[-1][0][0][1] == 0:
+                ind=-2
+            if contours[ind][0][0][1] >h*0.01 and abs(contours[ind][0][0][1]-contours[ind][1][0][1]) < h*0.07  and abs(contours[ind][0][0][1]-contours[ind][1][0][1]) > h*0.03 and contours[ind][1][0][1] < 0.1*h:
+                numb+=1
+        if len(contours)  > numb:
+            i = 0
+            filled = 0
 
-        i = 0
-        for cont in contoursB:
-            ar = cv2.contourArea(cont)
-            borderUp, borderDown = self.findBorderLengthsOfContour(contoursB, i, img)
-            if (ar < 0.4 * area and (borderUp < 0.6 * area or borderDown < 0.6 * area)):
-                cv2.drawContours(img, contoursB, i, (255, 255, 255), cv2.FILLED)
-                #show(img)
-            i += 1
-        # #######show(img)
+            for cont in contoursB:
+                ar = cv2.contourArea(cont)
+                borderUp, borderDown = self.findBorderLengthsOfContour(contoursB, i, img)
+                if (ar<0.1*area and borderUp<0.125*area and borderDown > 0.04 * area and i==0) and len(contours)-filled>numb:
+                    cv2.drawContours(img, contoursB, i, (255, 255, 255), cv2.FILLED)
+                    filled+=1
+                    continue
+                if ((i!=0 and i!=len(contoursB)-1) and ar < 0.1 * area and (borderUp + borderDown < 0.15 * area or (borderUp<0.1*area and borderDown<0.1*area))) and len(contours)-filled>numb:
+                    cv2.drawContours(img, contoursB, i, (255, 255, 255), cv2.FILLED)
+                    filled+=1
+                    continue
+
+                i += 1
+            #show(img)
         ########3
         im2, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        # #######show(img)
+        # #########show(img)
         i = 0
         todel = []
+
         for cont in contours:
             temp = np.zeros(shape=np.shape(img))
             cv2.drawContours(temp, contours, i, (255, 255, 255), thickness=5)
-            # #######show(img, temp)
+
             M = cv2.moments(cont)
             bad = False
             ar = cv2.contourArea(cont)
             # print(ar)
             borderUp, borderDown = self.findBorderLengthsOfContour(contours, i, img)
-            if borderDown < 0.3 * area and borderUp < 0.4 * area and i==0 and len(contourAres)>1 and contourAres[i+1] < 0.8*area:
-                print("detected!")
-            if (ar < 0.3 * area and (borderUp < 0.6 * area or borderDown < 0.6 * area))  or (
-                    i == 0 and borderUp > 0.8 * area and borderDown * 1.3 < borderUp) \
-                    or (i == len(contours) - 1 and borderDown > 0.8 * area and borderUp * 1.3 < borderDown):
-                bad = True
-            for coord in cont:
-                if coord[0][1] == 0 or coord[0][1] == np.shape(img)[0]:
+            if len(contours)-len(todel) > numb:
+                if ar<0.04*area and borderDown < 0.04 * area and borderUp > 0.1 * area and i==0:
                     bad = True
-            if M['m00'] != 0 and not bad:
-                cv2.drawContours(img, contours, i, (127,127,127), cv2.FILLED)
-            else:
+
+                if ar<0.04*area and borderDown > 0.1 * area and borderDown < 0.04 * area and i==len(contours)-1:
+                    bad = True
+
+                for coord in cont:
+                    if coord[0][1] == 0 or (coord[0][1] == np.shape(img)[0] and len(contours)-len(todel) > 4):
+                        bad = True
+            if M['m00'] == 0 or bad:
                 todel.append(i)
             i += 1
-
         contours = np.delete(contours, todel, axis=0)
-        print("Wykrytych wierszy: " + str(len(contours)))
-        ########show(img)
-        return img, len(contours)
+
+        #show(img)
+        if len(contours) > numb:
+            img = cv2.bitwise_not(img)
+            im2, contoursB, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            areasB = {en: cv2.contourArea(cont)+sum(self.findBorderLengthsOfContour(contoursB, en, img)) for en, cont in enumerate(contoursB) if not self.checkIfAtTheEnd(contoursB, en, img, w*4)}
+            deleted = 0
+            borders = list(areasB.items())
+            while(len(contours) - deleted > numb):
+                minBord = min(borders, key=lambda x: x[1])
+                cv2.drawContours(img, contoursB, minBord[0], (127,127,127), cv2.FILLED)
+                borders.remove(minBord)
+                deleted+=1
+                #show(img)
+            img = cv2.bitwise_not(img)
+
+        for i in range(len(contours)):
+            cv2.drawContours(img, contours, i, (127, 127, 127), cv2.FILLED)
+
+            #show(img)
+
+        #print("Wykrytych wierszy: " + str(len(contours)))
+        ##########show(img)
+        return img
 
 
     def detectContours(self, img):
@@ -160,9 +201,9 @@ class Piromain():
             borderUp, borderDown = self.findBorderLengthsOfContour(contoursB, i, img)
             if (ar < 0.4 * area and (borderUp < 0.6 * area or borderDown < 0.6 * area)):
                 cv2.drawContours(img, contoursB, i, (255, 255, 255), cv2.FILLED)
-                #show(img)
+                ##show(img)
             i += 1
-        # #######show(img)
+        # #########show(img)
         for cont in contours:
             for i in [4, 3, 2]:
                 if cv2.contourArea(cont) > i * area:
@@ -182,13 +223,13 @@ class Piromain():
                     break
         ########3
         im2, contours, hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        # #######show(img)
+        ##show(img)
         i = 0
         todel = []
         for cont in contours:
             temp = np.zeros(shape=np.shape(img))
             cv2.drawContours(temp, contours, i, (255, 255, 255), thickness=5)
-            # #######show(img, temp)
+            ##show(img, temp)
             M = cv2.moments(cont)
             bad = False
             ar = cv2.contourArea(cont)
@@ -213,8 +254,8 @@ class Piromain():
             i += 1
 
         contours = np.delete(contours, todel, axis=0)
-        print("Wykrytych wierszy: " + str(len(contours)))
-        ########show(img)
+        #print("Wykrytych wierszy: " + str(len(contours)))
+        ##########show(img)
         return img, len(contours)
 
     def apply_mask(self, rep, img):
@@ -257,7 +298,7 @@ class Piromain():
         row = np.transpose(row)
         #show(row)
         thresh = self.remove_background(row)
-        print("now")
+        #print("now")
         kernel = np.ones(shape=(5, 5))
         thresh = cv2.erode(thresh, kernel, iterations=3)
 
@@ -277,14 +318,14 @@ class Piromain():
         #show(rep)
         rep = cv2.erode(rep,kernel,iterations=8)
         #show(rep)
-        rep, rows = self.detectContoursForCols(rep)
+        rep = self.detectContoursForCols(rep)
         #show(rep)
         rep = np.where(rep != 127, 0, rep)
         rowsX = rep[:,0]
         return rowsX
 
         result = self.apply_mask(rep, row)
-        #show(result)
+        ###show(result)
 
     def itret(self, n, val, ls, dir):
 
@@ -297,15 +338,15 @@ class Piromain():
             lines=file.readlines()
         lines.pop(0)
         rowsCheck=[int(line.split(',')[0]) for line in lines]
-        print(rowsCheck)
+        #print(rowsCheck)
         rowsList = []
         for i in range(1, 30):
-            #i+=21
+            #i+=12
             imgs = read_particular_images("data", [i])
             imgOrg = cp.deepcopy(imgs[0])
-            print(imgOrg.shape)
+            #print(imgOrg.shape)
             img = self.swap_channel(imgs[0])
-
+            ##show(img)
             orgRows, orgCols, chan = np.shape(img)
             img, deleted = remove_surrounding(img)
             fromUp = self.itret(-1, -1,deleted['rows'],1) + 1
@@ -313,19 +354,20 @@ class Piromain():
             fromLeft = self.itret(-1, -1,deleted['columns'],1) + 1
             fromRight = len(deleted['columns']) - self.itret(len(deleted['columns']), orgCols, deleted['columns'],-1)
 
-            ######show(img)
-            print(i)
+            ##show(img)
+            #print(i)
             self.get_global_params(img)
 
             img, box, angle, pointsCut = detect_one_img(img, True)
+            ##show(img)
             rowsOfImg, colsOfImg = img.shape
             M = cv2.getRotationMatrix2D((colsOfImg / 2, rowsOfImg / 2), angle, 1)
             MT = cv2.getRotationMatrix2D((colsOfImg / 2, rowsOfImg / 2), -angle, 1)
             #print(M)
-            #show(img)
+            ##show(img)
             img = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), borderValue=np.mean(img))
 
-            #show(img)
+            ##show(img)
 
 
             ##show(img)
@@ -333,41 +375,46 @@ class Piromain():
             rep = self.detect_lines(img, thresh)
             rep = self.broaden_lines(rep)
             rep, rows = self.detectContours(rep)
-            show(rep)
+            ##show(rep)
             result = self.apply_mask(rep, img)
+            ##show(result)
             rowsList.append(rows)
             rep = np.where(rep != 127, 0, rep)
-            show(rep)
+            ##show(rep)
             x = np.where(rep == 127)
             rowsY = np.unique(x[0])
-            print(rowsY)
+            #print(rowsY)
             retMat = np.zeros(shape=np.shape(img))
             for k in range(len(rowsY)):
+
                 rowsX = self.detectWords(img[rowsY[k]-30:rowsY[k]+30])
-                retMat[rowsY[k]]=np.where(rowsX > 0, 255, 0)
+                retMat[rowsY[k]]=np.where(rowsX > 0, k+1, 0)
                 
 
             ker=np.ones(shape=(11,1))
             retMat=cv2.dilate(retMat, ker)
-            show(retMat)
-            retMat = cv2.warpAffine(retMat, MT, (img.shape[1], img.shape[0]), borderValue=0)
+            ##show(retMat)
+            retMat = cv2.warpAffine(retMat, MT, (img.shape[1], img.shape[0]), borderValue=0, flags=cv2.INTER_NEAREST)
             retMat2 = np.zeros(shape=(orgRows, orgCols))
             retMat2[pointsCut[0]+fromUp:pointsCut[1]+fromUp, pointsCut[2]+fromLeft:pointsCut[3]+fromLeft] = retMat
-            print(retMat2.shape)
-            #show(retMat2)
-            imgOrg[:,:,2] = retMat2
-            show(imgOrg)
-            #show(result)
-            display_image(result, i)
-        err = 0
-        errList=[]
-        for i in range(len(rowsCheck)):
-
-            if rowsCheck[i] != rowsList[i]:
-                err+=1
-                errList.append(i+1)
-        print(err)
-        print(errList)
+            #print(retMat2.shape)
+            ###show(retMat2)
+            #imgOrg[:,:,2] = retMat2
+            #show(imgOrg)
+            ###show(result)
+            #display_image(result, i)
+            plt.imshow(retMat2) ### DO ZAKOMENTOWANIA WYSWIETLANIE
+            plt.show()  ### DO ZAKOMENTOWANIA WYSWIETLANIE
+            return retMat2 ### TO TRZEBA RETURNOWAC TYLKO INACZEJ PĘTLE TRZEBA OBUDOWAC <-
+        # err = 0
+        # errList=[]
+        # for i in range(len(rowsCheck)):
+        #
+        #     if rowsCheck[i] != rowsList[i]:
+        #         err+=1
+        #         errList.append(i+1)
+        # print(err)
+        # print(errList)
 
 
 
