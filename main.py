@@ -4,7 +4,7 @@ from Text_Area_Detector import show, detect_one_img
 from image_io import *
 from surrounding_removal import remove_surrounding
 import copy as cp
-
+from IndexWordDecisionProcess import decisionProcess
 class Piromain():
 
     def remove_background(self, img):
@@ -174,7 +174,7 @@ class Piromain():
                 deleted+=1
                 #show(img)
             img = cv2.bitwise_not(img)
-
+        numb = len(contours)
         for i in range(len(contours)):
             cv2.drawContours(img, contours, i, (127, 127, 127), cv2.FILLED)
 
@@ -182,7 +182,7 @@ class Piromain():
 
         #print("Wykrytych wierszy: " + str(len(contours)))
         ##########show(img)
-        return img
+        return img, numb, contours
 
 
     def detectContours(self, img):
@@ -318,11 +318,11 @@ class Piromain():
         #show(rep)
         rep = cv2.erode(rep,kernel,iterations=8)
         #show(rep)
-        rep = self.detectContoursForCols(rep)
+        rep, number, contours = self.detectContoursForCols(rep)
         #show(rep)
         rep = np.where(rep != 127, 0, rep)
         rowsX = rep[:,0]
-        return rowsX
+        return rowsX, number, contours
 
         result = self.apply_mask(rep, row)
         ###show(result)
@@ -332,15 +332,26 @@ class Piromain():
         if n+dir < len(ls) and n+dir>=0 and (ls[n+dir] == val+dir-10 or abs(ls[n+dir] - (val+dir)) < 100):
             return self.itret(n+dir, val+dir, ls, dir)
         return n
+    def mode(self, collection):
+        (_, idx, counts) = np.unique(collection, return_index=True, return_counts=True)
+        index = idx[np.argmax(counts)]
+        mode = collection[index]
+        return mode
 
-    def main(self):
-        with open('data/iloscWierszy.txt', 'r') as file:
-            lines=file.readlines()
-        lines.pop(0)
-        rowsCheck=[int(line.split(',')[0]) for line in lines]
+    def mainLoop(self):
+        # with open('data/iloscWierszy.txt', 'r') as file:
+        #     lines=file.readlines()
+        # lines.pop(0)
+        #rowsCheck=[int(line.split(',')[0]) for line in lines]
         #print(rowsCheck)
-        rowsList = []
+        #rowsList = []
         for i in range(1, 30):
+            indexesImgs = self.main(i)
+            for indImg in indexesImgs:
+                plt.imshow(indImg)
+                plt.show()
+
+    def main(self, i):
             #i+=12
             imgs = read_particular_images("data", [i])
             imgOrg = cp.deepcopy(imgs[0])
@@ -378,34 +389,85 @@ class Piromain():
             ##show(rep)
             result = self.apply_mask(rep, img)
             ##show(result)
-            rowsList.append(rows)
+            #rowsList.append(rows)
             rep = np.where(rep != 127, 0, rep)
             ##show(rep)
             x = np.where(rep == 127)
             rowsY = np.unique(x[0])
             #print(rowsY)
             retMat = np.zeros(shape=np.shape(img))
+            wordsNumbs = []
+            wordsContsList = []
             for k in range(len(rowsY)):
 
-                rowsX = self.detectWords(img[rowsY[k]-30:rowsY[k]+30])
+                rowsX, wordsNumber, wordsConts = self.detectWords(img[rowsY[k]-30:rowsY[k]+30])
+                wordsNumbs.append(wordsNumber)
+                wordsContsList.append(wordsConts)
                 retMat[rowsY[k]]=np.where(rowsX > 0, k+1, 0)
-                
 
-            ker=np.ones(shape=(11,1))
-            retMat=cv2.dilate(retMat, ker)
-            ##show(retMat)
-            retMat = cv2.warpAffine(retMat, MT, (img.shape[1], img.shape[0]), borderValue=0, flags=cv2.INTER_NEAREST)
-            retMat2 = np.zeros(shape=(orgRows, orgCols))
-            retMat2[pointsCut[0]+fromUp:pointsCut[1]+fromUp, pointsCut[2]+fromLeft:pointsCut[3]+fromLeft] = retMat
-            #print(retMat2.shape)
-            ###show(retMat2)
-            #imgOrg[:,:,2] = retMat2
-            #show(imgOrg)
-            ###show(result)
-            #display_image(result, i)
-            plt.imshow(retMat2) ### DO ZAKOMENTOWANIA WYSWIETLANIE
-            plt.show()  ### DO ZAKOMENTOWANIA WYSWIETLANIE
-            return retMat2 ### TO TRZEBA RETURNOWAC TYLKO INACZEJ PĘTLE TRZEBA OBUDOWAC <-
+            # ker = np.ones(shape=(11, 1))
+            # retMat = cv2.dilate(retMat, ker)
+            # ##show(retMat)
+            # retMat = cv2.warpAffine(retMat, MT, (img.shape[1], img.shape[0]), borderValue=0, flags=cv2.INTER_NEAREST)
+            # retMat2 = np.zeros(shape=(orgRows, orgCols))
+            # retMat2[pointsCut[0] + fromUp:pointsCut[1] + fromUp,
+            # pointsCut[2] + fromLeft:pointsCut[3] + fromLeft] = retMat
+            # # print(retMat2.shape)
+            # ###show(retMat2)
+            # # imgOrg[:,:,2] = retMat2
+            # # show(imgOrg)
+            # ###show(result)
+            # # display_image(result, i)
+            # plt.imshow(retMat2)  ### DO ZAKOMENTOWANIA WYSWIETLANIE
+            # plt.show()  ### DO ZAKOMENTOWANIA WYSWIETLANIE
+
+            modeWords = self.mode(wordsNumbs)
+            modeIndices=np.where(np.array(wordsNumbs)==modeWords)[0]
+            modeGroupMean = np.mean([abs(wordsContsList[ind][0][1][0][1] - wordsContsList[ind][0][0][0][1]) for ind in modeIndices])
+
+
+            modeGroupBorderMean = np.mean([abs(wordsContsList[ind][0][0][0][1] - (wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0) ) for ind in modeIndices])
+            allDistances = [abs(wordsContsList[ind][0][0][0][1] - (wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0) ) for ind, numb in enumerate(wordsNumbs)]
+            allSizes =  [abs(wordsContsList[ind][0][1][0][1] - wordsContsList[ind][0][0][0][1]) for ind, numb in enumerate(wordsNumbs)]
+            allBeforeSizes = [abs(wordsContsList[ind][1][1][0][1] - wordsContsList[ind][1][0][0][1]) if len(wordsContsList[ind]) > 1 else 0 for ind, numb in enumerate(wordsNumbs)]
+
+            dataAll = [(allDistances[ind],
+              numb,
+              allSizes[ind],
+              allBeforeSizes[ind]+allDistances[ind]+allSizes[ind])
+              for ind, numb in enumerate(wordsNumbs)]
+            params = [modeWords, modeGroupMean, modeGroupBorderMean]
+
+            images = []
+            for ind, data in enumerate(dataAll):
+                state = 'none'
+                while(state != 'accept' and len(wordsContsList[ind]) > 1):
+                    if state=='remove':
+                        wordsContsList[ind]=np.delete(wordsContsList[ind],0, axis=0)
+                        dist = abs(wordsContsList[ind][0][0][0][1] - (wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0) )
+                        size = abs(wordsContsList[ind][0][1][0][1] - wordsContsList[ind][0][0][0][1])
+                        before_size = abs(wordsContsList[ind][1][1][0][1] - wordsContsList[ind][1][0][0][1]) if len(wordsContsList[ind]) > 1 else 0
+                        data = (dist, data[1]-1, size, before_size + dist + size)
+                    if state=='merge':
+                        popped = wordsContsList[ind][0]
+                        wordsContsList[ind] = np.delete(wordsContsList[ind], 0, axis=0)
+                        wordsContsList[ind][0][1][0][1] = popped[1][0][1]
+                        dist = abs(wordsContsList[ind][0][0][0][1] - (
+                            wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0))
+                        size = abs(wordsContsList[ind][0][1][0][1] - wordsContsList[ind][0][0][0][1])
+                        before_size = abs(wordsContsList[ind][1][1][0][1] - wordsContsList[ind][1][0][0][1]) if len(
+                            wordsContsList[ind]) > 1 else 0
+                        data = (dist, data[1] - 1, size, before_size + dist + size)
+                    state=decisionProcess(data, params)
+                imgIndex = img[rowsY[ind]-30:rowsY[ind]+30, wordsContsList[ind][0][0][0][1]-int(0.9*data[0])+1:wordsContsList[ind][0][1][0][1]+int(0.9*data[0])+1]
+                images.append(imgIndex)
+                # plt.imshow(imgIndex)
+                # plt.show()
+
+
+            ## UWAGA! Pierwszy INDEX to zazwyczaj NIE INDEX TYLKO OSTATNI WYRAZ Z NAGŁÓWKA LISTY -> przekazuje dalej
+            #do odrzucenia tego case'u !
+            return images ### TO TRZEBA RETURNOWAC TYLKO INACZEJ PĘTLE TRZEBA OBUDOWAC <-
         # err = 0
         # errList=[]
         # for i in range(len(rowsCheck)):
@@ -422,4 +484,4 @@ class Piromain():
 
 if __name__ == "__main__":
     m = Piromain()
-    m.main()
+    m.mainLoop()
