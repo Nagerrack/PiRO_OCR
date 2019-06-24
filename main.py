@@ -226,6 +226,7 @@ class Piromain():
         ##show(img)
         i = 0
         todel = []
+        heights= []
         for cont in contours:
             temp = np.zeros(shape=np.shape(img))
             cv2.drawContours(temp, contours, i, (255, 255, 255), thickness=5)
@@ -248,6 +249,7 @@ class Piromain():
                     bad = True
             if M['m00'] != 0 and not bad:
                 cy = int(M['m01'] / M['m00'])
+                heights.append(cy)
                 cv2.line(img, (0, cy), (np.shape(img)[1], cy), (127, 127, 127), 1)
             else:
                 todel.append(i)
@@ -256,7 +258,7 @@ class Piromain():
         contours = np.delete(contours, todel, axis=0)
         #print("Wykrytych wierszy: " + str(len(contours)))
         ##########show(img)
-        return img, len(contours)
+        return img, len(contours), heights
 
     def apply_mask(self, rep, img):
         return np.where(rep == 127, img, 0)
@@ -275,13 +277,19 @@ class Piromain():
         self.adaptiveThreshholdAddVal = 7 + int(self.mean / 10)
         if self.param > 800:
             self.filterMask += 2
-        edges = cv2.Canny(img, self.mean / 2, self.mean)
-
+        edges = cv2.Canny(img, self.mean , self.mean *2)
+        #show(edges)
         self.edgesMean = np.mean(edges)
+        self.edgesVar = np.var(edges)
         self.erode1 = 3 + int(self.param / 600) + int(self.param / 600) % 2
         self.dilateFirst = 3 + int(self.param / 400) * 2
         self.erodeFirst = self.dilateFirst + int(self.param / 600) * 2
         self.kernelLen = 3 + int(self.param / 800) * 2
+
+        # print(self.edgesMean)
+        # print(self.edgesVar)
+        # print(self.mean)
+        print(np.sqrt(self.param))
 
     def swap_channel(self, img):
 
@@ -346,10 +354,12 @@ class Piromain():
         #print(rowsCheck)
         #rowsList = []
         for i in range(1, 30):
+            #i+=15
             indexesImgs = self.main(i)
             for indImg in indexesImgs:
-                plt.imshow(indImg)
-                plt.show()
+                pass
+                # plt.imshow(indImg)
+                # plt.show()
 
     def main(self, i):
             #i+=12
@@ -370,6 +380,11 @@ class Piromain():
             self.get_global_params(img)
 
             img, box, angle, pointsCut = detect_one_img(img, True)
+            # print(pointsCut)
+            # show(img)
+            # show(imgOrg)
+            # imgWork = imgOrg[pointsCut[1]+50:pointsCut[1]+250, 200:pointsCut[3]]
+            # show(imgWork)
             ##show(img)
             rowsOfImg, colsOfImg = img.shape
             M = cv2.getRotationMatrix2D((colsOfImg / 2, rowsOfImg / 2), angle, 1)
@@ -385,7 +400,18 @@ class Piromain():
             thresh = self.remove_background(img)
             rep = self.detect_lines(img, thresh)
             rep = self.broaden_lines(rep)
-            rep, rows = self.detectContours(rep)
+            rep, rows, heights = self.detectContours(rep)
+
+
+            # heights.pop()
+            # heights.pop(0)
+            # for ind,height in enumerate(heights):
+            #     tempImg = imgOrg[height-30:height+30, pointsCut[3]+150:np.shape(imgOrg)[1]-50]
+            #     cv2.imwrite('kratki/'+str(i) + '_' +str(ind)+'.jpg',tempImg)
+            #     #plt.imshow(tempImg)
+            #     #plt.show()
+
+
             ##show(rep)
             result = self.apply_mask(rep, img)
             ##show(result)
@@ -421,12 +447,97 @@ class Piromain():
             # plt.imshow(retMat2)  ### DO ZAKOMENTOWANIA WYSWIETLANIE
             # plt.show()  ### DO ZAKOMENTOWANIA WYSWIETLANIE
 
+
+
+
+
+
+            # cv2.namedWindow('test')
+            #
+            #
+            # global noLinesImg
+            # noLinesImg = cp.deepcopy(img)
+            # global imgSaved
+            # imgSaved = cp.deepcopy(img)
+            # global x1, x2,x3,x4,x5
+            #
+            # x1=168
+            # x2=212
+            # x3=144
+            # x4=274
+            # x5=216
+            # # if self.edgesMean < 10:
+            # #     x4 = 45
+            # #     x5 = 182
+            # def change1(x):
+            #     global x1
+            #     x1= x
+            #
+            # def change2(x):
+            #     global x2
+            #     x2 = x
+            #
+            # def change3(x):
+            #     global x3
+            #     x3 = x
+            # def change4(x):
+            #     global x4
+            #     x4 = x
+            # def change5(x):
+            #     global x5
+            #     x5 = x
+            #
+            # cv2.createTrackbar('1', 'test', x1, 500, change1)
+            # cv2.createTrackbar('2', 'test', x2, 500, change2)
+            # cv2.createTrackbar('3', 'test', x3, 500, change3)
+            # cv2.createTrackbar('4', 'test', x4, 500, change4)
+            # cv2.createTrackbar('5', 'test', x5, 500, change5)
+            # while cv2.waitKey(30) != ord('q'):
+            #     can = cv2.Canny(imgSaved, x4, x5, None, 3)
+            #     lines = cv2.HoughLinesP(can, 1, np.pi / 180, x1, None, x2, x3)
+            #     cdst = np.zeros(shape=np.shape(imgSaved))
+            #     if lines is not None:
+            #         for i in range(0, len(lines)):
+            #             l = lines[i][0]
+            #             cv2.line(cdst, (l[0], l[1]), (l[2], l[3]), (255, 255, 255), 3, cv2.LINE_AA)
+            #     # show(can)
+            #     noLinesImg = np.uint8(can - cdst)
+            #     noLinesImg = cv2.resize(noLinesImg, (0, 0), fx=0.5, fy=0.5)
+            #     # show(img)
+            #     cv2.imshow('test', noLinesImg)
+
+
+
+
+
+
+
+
+            # lines = cv2.HoughLinesP(can, 1, np.pi / 180, 180, None, 100, 150)
+            # cdst = np.zeros(shape=np.shape(img))
+            # if lines is not None:
+            #     for i in range(0, len(lines)):
+            #         l = lines[i][0]
+            #         cv2.line(cdst, (l[0], l[1]), (l[2], l[3]), (255, 255, 255), 3, cv2.LINE_AA)
+            # #show(can)
+            # img = np.uint8(can - cdst)
+            # #show(img)
+
+
             modeWords = self.mode(wordsNumbs)
+            if wordsNumbs.count(3)/ len(wordsNumbs) > 0.35:
+                modeWords = 3
             modeIndices=np.where(np.array(wordsNumbs)==modeWords)[0]
             modeGroupMean = np.mean([abs(wordsContsList[ind][0][1][0][1] - wordsContsList[ind][0][0][0][1]) for ind in modeIndices])
 
-
+            print(modeGroupMean)
+            if modeGroupMean < 100 or modeGroupMean > 280:
+                modeGroupMean = np.sqrt(self.param)*3.2
             modeGroupBorderMean = np.mean([abs(wordsContsList[ind][0][0][0][1] - (wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0) ) for ind in modeIndices])
+            print(modeGroupBorderMean)
+
+            if modeGroupBorderMean < 30 or modeGroupBorderMean > 125:
+                modeGroupBorderMean = np.sqrt(self.param)*1.2
             allDistances = [abs(wordsContsList[ind][0][0][0][1] - (wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0) ) for ind, numb in enumerate(wordsNumbs)]
             allSizes =  [abs(wordsContsList[ind][0][1][0][1] - wordsContsList[ind][0][0][0][1]) for ind, numb in enumerate(wordsNumbs)]
             allBeforeSizes = [abs(wordsContsList[ind][1][1][0][1] - wordsContsList[ind][1][0][0][1]) if len(wordsContsList[ind]) > 1 else 0 for ind, numb in enumerate(wordsNumbs)]
@@ -459,10 +570,16 @@ class Piromain():
                             wordsContsList[ind]) > 1 else 0
                         data = (dist, data[1] - 1, size, before_size + dist + size)
                     state=decisionProcess(data, params)
+                    #print(state)
+
                 imgIndex = img[rowsY[ind]-30:rowsY[ind]+30, wordsContsList[ind][0][0][0][1]-int(0.9*data[0])+1:wordsContsList[ind][0][1][0][1]+int(0.9*data[0])+1]
+                imgIndex = img[rowsY[ind] - 30:rowsY[ind] + 30,
+                           wordsContsList[ind][0][0][0][1] :wordsContsList[ind][0][1][0][
+                                                                                        1] ]
+                #imgIndex = img[rowsY[ind]-30:rowsY[ind]+30, wordsContsList[ind][0][1][0][1]+int(0.9*data[0])+1:wordsContsList[ind][0][1][0][1]+int(0.9*data[0])+100]
                 images.append(imgIndex)
-                # plt.imshow(imgIndex)
-                # plt.show()
+                plt.imshow(imgIndex)
+                plt.show()
 
 
             ## UWAGA! Pierwszy INDEX to zazwyczaj NIE INDEX TYLKO OSTATNI WYRAZ Z NAGŁÓWKA LISTY -> przekazuje dalej
