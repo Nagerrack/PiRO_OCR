@@ -17,4 +17,4 @@ def extract(h,w, iter):
                 out = img[start_h:start_h+h, start_w:start_w+w]
                 cv2.imwrite('kratki_extracted/'+str(ind)+'.jpg', out)
 
-extract(48,32,1000)
+extract(48,32,1500)
