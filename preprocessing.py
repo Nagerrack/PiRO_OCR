@@ -39,28 +39,62 @@ def adjust_gamma(image, gamma=1.0):
                       for i in np.arange(0, 256)]).astype("uint8")
 
     # apply gamma correction using the lookup table
-    return cv2.LUT(image, table)
+    return
 
+
+def preprocess_func(img, grid, table):
+    img = img.astype(np.uint8)
+    ret, img = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)
+    img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3, 3), dtype=np.uint8))
+    img = cv2.resize(img, (48, 48))
+    move = np.random.randint(-2, 2)
+    img = img[:, 8 + move:40 + move]
+    sigma = np.random.rand()
+    img = cv2.GaussianBlur(img, (3, 3), 1 + sigma)
+    #gamma = random.randint(22, 34) / 100
+    # img = adjust_gamma(img, gamma=gamma)
+    img = cv2.LUT(img, table)
+    # grid_path = "kratki_extracted/"
+    # grid_number = random.randint(0, 1499)
+    # grid_number = r'\{}.png'.format(grid_number)
+    # grid = cv2.imread(grid_path + grid_number, 0)
+
+    div = np.random.randint(110, 135)
+    mean = np.mean(grid) / div
+
+    thresh = np.random.randint(120, 136)
+    alpha = np.random.randint(89, 95) / 100
+    beta = np.random.randint(90, 100) / 100
+    mask = np.where(img < thresh, (alpha * img + (1 - alpha) * grid) * mean, grid * beta)
+    mask = mask.astype(np.uint8)
+    return mask
 
 def merge_grid(image_number, grid_number):
-    file_path = r"C:\Users\A\Desktop\PiRO\numbers\8"
-    grid_path = r"C:\Users\A\Desktop\PiRO\PiRO_OCR\kratki_extracted"
+    file_path = "numbers/2"
+    grid_path = "kratki_extracted"
     image_number = r'\{}.png'.format(image_number)
-    grid_number = r'\{}.jpg'.format(grid_number)
+    grid_number = r'\{}.png'.format(grid_number)
     img = cv2.imread(file_path + image_number, 0)
+
+    img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3, 3), dtype=np.uint8))
+
     img = cv2.resize(img, (48, 48))
-    img = img[:, 8:40]
+
+    move = np.random.randint(-2,2)
+    img = img[:, 8+move:40+move]
     #print(img.shape)
 
     # plt.imshow(img, cmap='gray')
     # plt.show()
 
-    img = adjust_gamma(img, gamma=0.4)
+    #img = adjust_gamma(img, gamma=0.4)
     # plt.imshow(img, cmap='gray')
     # plt.show()
 
-    img = cv2.GaussianBlur(img, (3, 3), 2)
-    img = adjust_gamma(img, gamma=0.4)
+    sigma = np.random.rand()
+    img = cv2.GaussianBlur(img, (3, 3), 1+sigma)
+    gamma = random.randint(22,34)/100
+    img = adjust_gamma(img, gamma=gamma)
 
     # plt.imshow(img, cmap='gray')
     # plt.show()
@@ -71,12 +105,22 @@ def merge_grid(image_number, grid_number):
     # img = cv2.erode(img, np.ones((3, 3), dtype=np.uint8))
     # img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3, 3), dtype=np.uint8))
     grid = cv2.imread(grid_path + grid_number, 0)
-    grid = adjust_gamma(grid, gamma=0.2)
-    weighted = cv2.addWeighted(img, 0.55, grid, 0.55, 0.01)
-    thresh = 250
-    mask = np.where(img < 1.8 * grid, 0.75 * img + 0.25 * grid, 0.25 * img + 0.75 * grid)
+    plt.imshow(grid, cmap='gray')
+    plt.show()
+    #grid = adjust_gamma(grid, gamma=0.4)
+    #weighted = cv2.addWeighted(img, 0.55, grid, 0.55, 0.01)
+    #thresh = 250
+    div = np.random.randint(110, 135)
+    mean = np.mean(grid)/div
+    print(mean)
+
+    thresh = np.random.randint(120, 136)
+    alpha = np.random.randint(89, 95)/100
+    beta= np.random.randint(90,100)/100
+    mask = np.where(img < thresh, (alpha * img + (1-alpha) * grid)*mean, grid*beta)
+    mask = mask.astype(np.uint8)
     sum = grid + img - 255  # np.where(mask == 0, grid, img * 0.75 + grid * 0.25)
-    mask = adjust_gamma(mask.astype(np.uint8), gamma=0.6)
+    #mask = adjust_gamma(mask.astype(np.uint8), gamma=0.6)
     # plt.imshow(img, cmap='gray')
     # plt.show()
     plt.imshow(mask, cmap='gray')
@@ -89,7 +133,7 @@ def merge_grid(image_number, grid_number):
     # plt.show()
 
 
-for i in range(25):
-    image_number = random.randint(100, 1500)
-    grid_number = random.randint(100, 500)
-    merge_grid(image_number, grid_number)
+# for i in range(25):
+#     image_number = 49
+#     grid_number = random.randint(100, 500)
+#     merge_grid(image_number, grid_number)
