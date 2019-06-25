@@ -1,6 +1,7 @@
 from DataAug import ImageDataGenerator
 # import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 from preprocessing import preprocess_func
 import keras
 from keras.layers import *
@@ -27,9 +28,9 @@ g = gen.flow_from_directory('numbers', target_size=(48,32), color_mode='grayscal
 #model = get_model()
 
 
-# for i in range(50):
-    # plt.imshow(g.next()[0][0].reshape(48,32))
-    # plt.show()
+for i in range(50):
+    plt.imshow(g.next()[0][0].reshape(48,32))
+    plt.show()
 model = keras.Sequential()
 model.add(InputLayer(input_shape=(48,32, 1)))
 model.add(Flatten())
