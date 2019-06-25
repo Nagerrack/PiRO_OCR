@@ -1468,7 +1468,7 @@ class Iterator(IteratorType):
                 self.image_shape = (3,) + self.target_size
         else:
             if self.data_format == 'channels_last':
-                self.image_shape = self.target_size
+                self.image_shape = self.target_size + (1, )
             else:
                 self.image_shape = (1,) + self.target_size
         self.save_to_dir = save_to_dir
@@ -1940,13 +1940,13 @@ class DirectoryIterator(Iterator):
 
             grid = self.grids[np.random.randint(0, 1499)]
             if self.preprocessing_function:
-                x = self.preprocessing_function(x, grid, self.table)
+                x = self.preprocessing_function(x, grid, self.table, self.classes[j])
             params = self.image_data_generator.get_random_transform(x.shape)
 
             x= np.expand_dims(x, axis=-1)
             x = self.image_data_generator.apply_transform(x, params)
             x=x[2:50, 2:34, :]
-            x = np.reshape(x, newshape=self.target_size)
+            #x = np.reshape(x, newshape=self.target_size)
             x = self.image_data_generator.standardize(x, self.grids, self.table)
             batch_x[i] = x
         # optionally save augmented images to disk for debugging purposes

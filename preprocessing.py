@@ -42,32 +42,38 @@ def adjust_gamma(image, gamma=1.0):
     return
 
 
-def preprocess_func(img, grid, table):
-    img = img.astype(np.uint8)
-    ret, img = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)
-    img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3, 3), dtype=np.uint8))
-    img = cv2.resize(img, (52, 52))
-    move = np.random.randint(-1, 1)
-    img = img[:, 6 + move:42 + move]
-    sigma = np.random.rand()
-    img = cv2.GaussianBlur(img, (3, 3), 1 + sigma)
-    #gamma = random.randint(22, 34) / 100
-    # img = adjust_gamma(img, gamma=gamma)
-    img = cv2.LUT(img, table)
-    # grid_path = "kratki_extracted/"
-    # grid_number = random.randint(0, 1499)
-    # grid_number = r'\{}.png'.format(grid_number)
-    # grid = cv2.imread(grid_path + grid_number, 0)
+def preprocess_func(img, grid, table, clazz):
 
-    div = np.random.randint(110, 135)
-    mean = np.mean(grid) / div
+    if clazz != 10:
+        ret, img = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)
+        img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3, 3), dtype=np.uint8)).astype(np.uint8)
+        img = cv2.resize(img, (52, 52))
+        move = np.random.randint(-1, 1)
+        img = img[:, 6 + move:42 + move]
+        sigma = np.random.rand()
+        img = cv2.GaussianBlur(img, (3, 3), 1 + sigma)
+        #gamma = random.randint(22, 34) / 100
+        # img = adjust_gamma(img, gamma=gamma)
+        img = cv2.LUT(img, table)
+        # grid_path = "kratki_extracted/"
+        # grid_number = random.randint(0, 1499)
+        # grid_number = r'\{}.png'.format(grid_number)
+        # grid = cv2.imread(grid_path + grid_number, 0)
 
-    thresh = np.random.randint(120, 136)
-    alpha = np.random.randint(89, 95) / 100
-    beta = np.random.randint(90, 100) / 100
-    mask = np.where(img < thresh, (alpha * img + (1 - alpha) * grid) * mean, grid * beta)
-    mask = mask.astype(np.uint8)
-    return mask
+        div = np.random.randint(110, 135)
+        mean = np.mean(grid) / div
+
+        thresh = np.random.randint(120, 136)
+        alpha = np.random.randint(89, 95) / 100
+        beta = np.random.randint(90, 100) / 100
+        mask = np.where(img < thresh, (alpha * img + (1 - alpha) * grid) * mean, grid * beta)
+        mask = mask.astype(np.uint8)
+        return mask
+    else:
+        img = cv2.resize(img, (52, 52))
+        move = np.random.randint(-1, 1)
+        img = img[:, 6 + move:42 + move]
+        return img
 
 def merge_grid(image_number, grid_number):
     file_path = "numbers/2"
