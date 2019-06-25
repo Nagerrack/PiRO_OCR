@@ -10,7 +10,7 @@ def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32,
     assert w > w_width, "Image width is less than window width"
     assert step_size > 1, "Step size must be grater than 1"
 
-    itr_number = (w - w_width) // step_size
+    itr_number = (w - w_width) // step_size + 1
     missing_full_step_pixels = (w - w_width) % step_size
 
     vccp = (h - w_height) // 2  # vertical_crop_corner_position
