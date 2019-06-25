@@ -46,9 +46,9 @@ def preprocess_func(img, grid, table):
     img = img.astype(np.uint8)
     ret, img = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)
     img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3, 3), dtype=np.uint8))
-    img = cv2.resize(img, (48, 48))
-    move = np.random.randint(-2, 2)
-    img = img[:, 8 + move:40 + move]
+    img = cv2.resize(img, (52, 52))
+    move = np.random.randint(-1, 1)
+    img = img[:, 6 + move:42 + move]
     sigma = np.random.rand()
     img = cv2.GaussianBlur(img, (3, 3), 1 + sigma)
     #gamma = random.randint(22, 34) / 100

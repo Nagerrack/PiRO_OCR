@@ -6,10 +6,25 @@ import keras
 from keras.layers import *
 from keras.optimizers import *
 from keras.losses import *
-gen = ImageDataGenerator(preprocessing_function=preprocess_func)
+
+aug = {
+        "rotation_range": 5.0,
+        "width_shift_range": 0.05,
+        "height_shift_range": 0.05,
+        "zoom_range": 0.05,
+        "shear_range": 0.05,
+        "rescale": 1. / 255,
+        "fill_mode": 'constant'
+    }
+
+gen = ImageDataGenerator(preprocessing_function=preprocess_func, rotation_range=aug['rotation_range'], width_shift_range=aug['width_shift_range'],
+                         height_shift_range=aug['height_shift_range'], zoom_range=aug['zoom_range'], shear_range=aug['shear_range'],
+                         rescale=aug['rescale'], fill_mode=aug['fill_mode'])
 g = gen.flow_from_directory('numbers', target_size=(48,32), color_mode='grayscale')
-plt.imshow(g.next()[0][0].astype(np.uint8))
-plt.show()
+
+for i in range(50):
+    plt.imshow(g.next()[0][0])
+    plt.show()
 model = keras.Sequential()
 model.add(InputLayer(input_shape=(48,32)))
 model.add(Flatten())
