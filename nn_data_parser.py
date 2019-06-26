@@ -69,7 +69,63 @@ def aggregate(divided_nn_outputs):
     return result
 
 
-# TEST SECTION
+class LastMinuteMemory:
+
+    def __init__(self, step_to_remember=3):
+        self.memory = []
+        self.step_to_remember = step_to_remember
+
+    def remember(self, item):
+        self.memory.append(item)
+        forgotten_value = self.forget_distant_past()
+        return forgotten_value
+
+    def forget_distant_past(self):
+        if (len(self.memory) > self.step_to_remember):
+            return self.memory.pop(0)
+        return None
+
+    def forget_all(self):
+        self.memory.clear()
+
+
+class IndexAggregator():
+    def __init__(self, nn_outputs, accept_probability_threshold=0.80, ignore_the_same_value=3):
+        self.nn_outputs = nn_outputs
+        self.memory = LastMinuteMemory(ignore_the_same_value)
+        self.accept_probability_threshold = accept_probability_threshold
+        self.index = ''
+        self.barrier = 10
+
+    def aggregate(self):
+        for nn_output in self.nn_outputs:
+            self.get_decision(nn_output)
+        return self.index
+
+    def get_decision(self, nn_output):
+        pretendendt = np.argmax(nn_output)
+
+        if np.max(nn_output) > self.accept_probability_threshold:
+            if not self.is_block(pretendendt):
+                self.index += str(pretendendt)
+                self.blocked_value = pretendendt
+
+    def is_block(self, value):
+        forgoten = self.memory.remember(value)
+        if self.barrier != value:  # Block value is different than incoming
+            if value == 10:
+                self.barrier = 10
+                return True
+            if self.barrier == 8 and value == 3:  # RULE FOR EIGHT
+                if 8 in self.memory.memory:
+                    return True  # BLOCK
+            self.barrier = value
+            return False  # PASS
+        else:  # The same value detected
+            if forgoten == value:
+                return True
+            return True  # BLOCK
+
 
 def test_method_1():
     img = cv2.imread("data/raw_index/1.png")
@@ -81,7 +137,7 @@ def test_method_1():
         plt.show()
 
 
-def test_method_2():
+def est_method_2():
     array = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
              [0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0],  # 4
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
@@ -94,8 +150,11 @@ def test_method_2():
              [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # 0
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
              ]
-    print(aggregate_output_in_index(array))
 
-
+    print("hello World")
+    # print(aggregate_output_in_index(array))
+    a = IndexAggregator(array)
+    print(a.aggregate())
 if __name__ == "__main__":
-    test_method_2()
+
+    est_method_2()

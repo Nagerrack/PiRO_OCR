@@ -8,7 +8,7 @@ from DataAug import ImageDataGenerator
 from preprocessing import preprocess_func
 model = md.get_model()
 
-weight_path = 'weights/weightsAvg4'
+weight_path = 'weights/weightsAvgV3-6_original_nodrop'
 
 model.load_weights(weight_path)
 
