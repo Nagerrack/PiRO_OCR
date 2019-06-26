@@ -13,7 +13,7 @@ weight_path = 'weights/weightsAvg4'
 
 model.load_weights(weight_path)
 
-indice_images = main.get_indices(3)
+indice_images = main.get_indices(1)
 
 c = 0
 
@@ -44,6 +44,9 @@ for index in indice_images:
     vals=[np.amax(pred) for pred in prediction_list]
     steps = [4*ind for ind,pred in enumerate(prediction_list)]
     maxes = [np.argmax(pred) for pred in prediction_list]
+    plt.scatter(steps, vals)
+    for i in range(len(vals)):
+        plt.annotate("{0}".format(maxes[i]), (steps[i], vals[i]))
 
     plt.plot(steps, vals)
     plt.show()
