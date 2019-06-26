@@ -7,9 +7,9 @@ from keras.losses import *
 
 def get_model(input_shape=(48, 32, 1), output_category_number=11):
     inputs = Input(input_shape)
-    drop = Dropout(0.25)(inputs)
+    #drop = Dropout(0.25)(inputs)
 
-    conv1_preAct = Conv2D(32, 3, activation='linear', padding='same', kernel_initializer='he_normal')(drop)
+    conv1_preAct = Conv2D(32, 3, activation='linear', padding='same', kernel_initializer='he_normal')(inputs)
     bn1 = BatchNormalization()(conv1_preAct)
     conv1 = Activation('relu')(bn1)
 
@@ -65,26 +65,32 @@ def get_model(input_shape=(48, 32, 1), output_category_number=11):
 
 
 def get_model_v2(input_shape=(48, 32, 1), output_category_number=11):
-
     model = Sequential()
 
     model.add(Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
                      input_shape=input_shape))
+    model.add(BatchNormalization())
 
     model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(BatchNormalization())
+
+    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(BatchNormalization())
 
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Dropout(0.25))
+    # model.add(Dropout(0.25))
 
     model.add(Flatten())
 
     model.add(Dense(128, activation='relu'))
+    model.add(BatchNormalization())
 
-    model.add(Dropout(0.25))
+    # model.add(Dropout(0.25))
 
     model.add(Dense(32, activation='relu'))
+    model.add(BatchNormalization())
 
     model.add(Dense(output_category_number, activation='softmax'))
 
