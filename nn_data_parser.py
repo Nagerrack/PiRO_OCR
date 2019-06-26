@@ -8,11 +8,10 @@ def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32,
 
     assert h > w_height, "Image height is less than window height"
 
-
     vccp = (h - w_height) // 2  # vertical_crop_corner_position
 
-    img = img[vccp:vccp + w_height,:]
-    #imgT = np.transpose(img)
+    img = img[vccp:vccp + w_height, :]
+    # imgT = np.transpose(img)
 
     addImg = cv2.imread('kratki_extracted/0.png', 0)
     img = np.concatenate([addImg, img, addImg], axis=1)
@@ -32,40 +31,6 @@ def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32,
     if create_image_with_part_step and missing_full_step_pixels > 0:
         crop_img = img[:, w - w_width:w]
         result.append(crop_img)
-    return result
-
-
-def aggregate_output_in_index(nn_outputs):
-    divided_nn_output = divide(nn_outputs)
-    return aggregate(divided_nn_output)
-
-
-def divide(nn_outputs, minimum_sample_per_digit=1):
-    accumulator_index = []
-    accumulator_digit = []
-    # current_max_index = 11
-    for i in range(len(nn_outputs)):
-        max_index = np.argmax(nn_outputs[i])
-        # here add other condition separation
-        if max_index != 10:
-            accumulator_digit.append(nn_outputs[i])
-        else:
-            if len(accumulator_digit) >= minimum_sample_per_digit:
-                accumulator_index.append(accumulator_digit)
-                accumulator_digit = []
-
-    # boundary condition
-    if len(accumulator_digit) >= minimum_sample_per_digit:
-        accumulator_index.append(accumulator_digit)
-    return accumulator_index
-
-
-def aggregate(divided_nn_outputs):
-    result = ""
-    for element in divided_nn_outputs:
-        sum_array = np.sum(element, axis=0)
-        index = np.argmax(sum_array)
-        result = result + str(index)
     return result
 
 
@@ -89,7 +54,7 @@ class LastMinuteMemory:
         self.memory.clear()
 
 
-class IndexAggregator():
+class IndexAggregator:
     def __init__(self, nn_outputs, accept_probability_threshold=0.80, ignore_the_same_value=3):
         self.nn_outputs = nn_outputs
         self.memory = LastMinuteMemory(ignore_the_same_value)
@@ -103,15 +68,15 @@ class IndexAggregator():
         return self.index
 
     def get_decision(self, nn_output):
-        pretendendt = np.argmax(nn_output)
+        precedent = np.argmax(nn_output)
 
         if np.max(nn_output) > self.accept_probability_threshold:
-            if not self.is_block(pretendendt):
-                self.index += str(pretendendt)
-                self.blocked_value = pretendendt
+            if not self.is_block(precedent):
+                self.index += str(precedent)
+                self.blocked_value = precedent
 
     def is_block(self, value):
-        forgoten = self.memory.remember(value)
+        forgotten = self.memory.remember(value)
         if self.barrier != value:  # Block value is different than incoming
             if value == 10:
                 self.barrier = 10
@@ -122,7 +87,7 @@ class IndexAggregator():
             self.barrier = value
             return False  # PASS
         else:  # The same value detected
-            if forgoten == value:
+            if forgotten == value:
                 return True
             return True  # BLOCK
 
@@ -155,6 +120,7 @@ def est_method_2():
     # print(aggregate_output_in_index(array))
     a = IndexAggregator(array)
     print(a.aggregate())
-if __name__ == "__main__":
 
+
+if __name__ == "__main__":
     est_method_2()
