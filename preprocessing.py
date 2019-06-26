@@ -31,6 +31,21 @@ def parse_number_dataset():
                         os.rename(path.join(final_file_path, image_file), path.join(final_file_path, final_image_name))
 
 
+def create_train_test():
+    file_path = r"..\numbers — kopia"
+    # train_path = r"..\numbers-train"
+    test_path = r"..\numbers-test"
+    if not path.exists(test_path):
+        os.mkdir(test_path)
+    for image_dir in os.listdir(file_path):
+        for r, _, f in os.walk(path.join(file_path, image_dir)):
+            test_files = np.random.choice(f, int(len(f) * 0.12), replace=False)
+            if not path.exists(path.join(test_path, image_dir)):
+                os.mkdir(path.join(test_path, image_dir))
+            for test_file in test_files:
+                shutil.move(path.join(file_path, image_dir, test_file), path.join(test_path, image_dir, test_file))
+
+
 def adjust_gamma(image, gamma=1.0):
     # build a lookup table mapping the pixel values [0, 255] to
     # their adjusted gamma values
@@ -42,32 +57,38 @@ def adjust_gamma(image, gamma=1.0):
     return
 
 
-def preprocess_func(img, grid, table):
-    img = img.astype(np.uint8)
-    ret, img = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)
-    img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3, 3), dtype=np.uint8))
-    img = cv2.resize(img, (48, 48))
-    move = np.random.randint(-2, 2)
-    img = img[:, 8 + move:40 + move]
-    sigma = np.random.rand()
-    img = cv2.GaussianBlur(img, (3, 3), 1 + sigma)
-    #gamma = random.randint(22, 34) / 100
-    # img = adjust_gamma(img, gamma=gamma)
-    img = cv2.LUT(img, table)
-    # grid_path = "kratki_extracted/"
-    # grid_number = random.randint(0, 1499)
-    # grid_number = r'\{}.png'.format(grid_number)
-    # grid = cv2.imread(grid_path + grid_number, 0)
+def preprocess_func(img, grid, table, clazz):
+    if clazz != 10:
+        ret, img = cv2.threshold(img, 230, 255, cv2.THRESH_BINARY)
+        img = cv2.morphologyEx(img, cv2.MORPH_OPEN, np.ones((3, 3), dtype=np.uint8)).astype(np.uint8)
+        img = cv2.resize(img, (52, 52))
+        move = np.random.randint(-1, 1)
+        img = img[:, 6 + move:42 + move]
+        sigma = np.random.rand()
+        img = cv2.GaussianBlur(img, (3, 3), 1 + sigma)
+        # gamma = random.randint(22, 34) / 100
+        # img = adjust_gamma(img, gamma=gamma)
+        img = cv2.LUT(img, table)
+        # grid_path = "kratki_extracted/"
+        # grid_number = random.randint(0, 1499)
+        # grid_number = r'\{}.png'.format(grid_number)
+        # grid = cv2.imread(grid_path + grid_number, 0)
 
-    div = np.random.randint(110, 135)
-    mean = np.mean(grid) / div
+        div = np.random.randint(110, 135)
+        mean = np.mean(grid) / div
 
-    thresh = np.random.randint(120, 136)
-    alpha = np.random.randint(89, 95) / 100
-    beta = np.random.randint(90, 100) / 100
-    mask = np.where(img < thresh, (alpha * img + (1 - alpha) * grid) * mean, grid * beta)
-    mask = mask.astype(np.uint8)
-    return mask
+        thresh = np.random.randint(120, 136)
+        alpha = np.random.randint(89, 95) / 100
+        beta = np.random.randint(90, 100) / 100
+        mask = np.where(img < thresh, (alpha * img + (1 - alpha) * grid) * mean, grid * beta)
+        mask = mask.astype(np.uint8)
+        return mask
+    else:
+        img = cv2.resize(img, (52, 52))
+        move = np.random.randint(-1, 1)
+        img = img[:, 6 + move:42 + move]
+        return img
+
 
 def merge_grid(image_number, grid_number):
     file_path = "numbers/2"
@@ -80,20 +101,20 @@ def merge_grid(image_number, grid_number):
 
     img = cv2.resize(img, (48, 48))
 
-    move = np.random.randint(-2,2)
-    img = img[:, 8+move:40+move]
-    #print(img.shape)
+    move = np.random.randint(-2, 2)
+    img = img[:, 8 + move:40 + move]
+    # print(img.shape)
 
     # plt.imshow(img, cmap='gray')
     # plt.show()
 
-    #img = adjust_gamma(img, gamma=0.4)
+    # img = adjust_gamma(img, gamma=0.4)
     # plt.imshow(img, cmap='gray')
     # plt.show()
 
     sigma = np.random.rand()
-    img = cv2.GaussianBlur(img, (3, 3), 1+sigma)
-    gamma = random.randint(22,34)/100
+    img = cv2.GaussianBlur(img, (3, 3), 1 + sigma)
+    gamma = random.randint(22, 34) / 100
     img = adjust_gamma(img, gamma=gamma)
 
     # plt.imshow(img, cmap='gray')
@@ -107,20 +128,20 @@ def merge_grid(image_number, grid_number):
     grid = cv2.imread(grid_path + grid_number, 0)
     plt.imshow(grid, cmap='gray')
     plt.show()
-    #grid = adjust_gamma(grid, gamma=0.4)
-    #weighted = cv2.addWeighted(img, 0.55, grid, 0.55, 0.01)
-    #thresh = 250
+    # grid = adjust_gamma(grid, gamma=0.4)
+    # weighted = cv2.addWeighted(img, 0.55, grid, 0.55, 0.01)
+    # thresh = 250
     div = np.random.randint(110, 135)
-    mean = np.mean(grid)/div
+    mean = np.mean(grid) / div
     print(mean)
 
     thresh = np.random.randint(120, 136)
-    alpha = np.random.randint(89, 95)/100
-    beta= np.random.randint(90,100)/100
-    mask = np.where(img < thresh, (alpha * img + (1-alpha) * grid)*mean, grid*beta)
+    alpha = np.random.randint(89, 95) / 100
+    beta = np.random.randint(90, 100) / 100
+    mask = np.where(img < thresh, (alpha * img + (1 - alpha) * grid) * mean, grid * beta)
     mask = mask.astype(np.uint8)
     sum = grid + img - 255  # np.where(mask == 0, grid, img * 0.75 + grid * 0.25)
-    #mask = adjust_gamma(mask.astype(np.uint8), gamma=0.6)
+    # mask = adjust_gamma(mask.astype(np.uint8), gamma=0.6)
     # plt.imshow(img, cmap='gray')
     # plt.show()
     plt.imshow(mask, cmap='gray')
@@ -137,3 +158,4 @@ def merge_grid(image_number, grid_number):
 #     image_number = 49
 #     grid_number = random.randint(100, 500)
 #     merge_grid(image_number, grid_number)
+

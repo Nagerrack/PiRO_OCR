@@ -1010,7 +1010,8 @@ class ImageDataGenerator(object):
             save_format=save_format,
             follow_links=follow_links,
             subset=subset,
-            interpolation=interpolation)
+            interpolation=interpolation,
+        preprocessing_function = self.preprocessing_function)
 
     def flow_from_dataframe(self, dataframe, directory,
                             x_col="filename", y_col="class", has_ext=True,
@@ -1115,11 +1116,9 @@ class ImageDataGenerator(object):
         # Returns
             The inputs, normalized.
         """
-        grid = grids[np.random.randint(0,1499)]
-        if self.preprocessing_function:
-            x = self.preprocessing_function(x, grid, table)
+
         if self.rescale:
-            x *= self.rescale
+            x = x* self.rescale
         if self.samplewise_center:
             x -= np.mean(x, keepdims=True)
         if self.samplewise_std_normalization:
@@ -1469,7 +1468,7 @@ class Iterator(IteratorType):
                 self.image_shape = (3,) + self.target_size
         else:
             if self.data_format == 'channels_last':
-                self.image_shape = self.target_size
+                self.image_shape = self.target_size + (1, )
             else:
                 self.image_shape = (1,) + self.target_size
         self.save_to_dir = save_to_dir
@@ -1846,7 +1845,8 @@ class DirectoryIterator(Iterator):
                  follow_links=False,
                  subset=None,
                  interpolation='nearest',
-                 dtype='float32'):
+                 dtype='float32',
+                 preprocessing_function = None):
         super(DirectoryIterator, self).common_init(image_data_generator,
                                                    target_size,
                                                    color_mode,
@@ -1859,6 +1859,7 @@ class DirectoryIterator(Iterator):
         self.directory = directory
         self.classes = classes
         invGamma = 1.0 / 0.25
+        self.preprocessing_function=preprocessing_function
         self.table = np.array([((i / 255.0) ** invGamma) * 255
                           for i in np.arange(0, 256)]).astype("uint8")
         import cv2
@@ -1934,9 +1935,18 @@ class DirectoryIterator(Iterator):
             # but not PIL images.
             if hasattr(img, 'close'):
                 img.close()
-            params = self.image_data_generator.get_random_transform(x.shape)
-            x = self.image_data_generator.apply_transform(x, params)
 
+
+
+            grid = self.grids[np.random.randint(0, 1499)]
+            if self.preprocessing_function:
+                x = self.preprocessing_function(x, grid, self.table, self.classes[j])
+            params = self.image_data_generator.get_random_transform(x.shape)
+
+            x= np.expand_dims(x, axis=-1)
+            x = self.image_data_generator.apply_transform(x, params)
+            x=x[2:50, 2:34, :]
+            #x = np.reshape(x, newshape=self.target_size)
             x = self.image_data_generator.standardize(x, self.grids, self.table)
             batch_x[i] = x
         # optionally save augmented images to disk for debugging purposes
