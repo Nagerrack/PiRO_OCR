@@ -796,6 +796,9 @@ class ImageDataGenerator(object):
         self.rescale = rescale
         self.preprocessing_function = preprocessing_function
         self.dtype = dtype
+        import cv2
+        grid_path = "kratki_extracted/"
+        self.grids = [cv2.imread(grid_path + '{}.png'.format(i), 0) for i in range(1500)]
 
         if data_format not in {'channels_last', 'channels_first'}:
             raise ValueError(
@@ -1107,7 +1110,7 @@ class ImageDataGenerator(object):
                                  subset=subset,
                                  interpolation=interpolation)
 
-    def standardize(self, x, grids, table):
+    def standardize(self, x, dontUsePrep = False):
         """Applies the normalization configuration to a batch of inputs.
 
         # Arguments
@@ -1116,7 +1119,8 @@ class ImageDataGenerator(object):
         # Returns
             The inputs, normalized.
         """
-
+        if self.preprocessing_function and not dontUsePrep:
+            x = self.preprocessing_function(x, self.grids[np.random.randint(0,1499)])
         if self.rescale:
             x = x* self.rescale
         if self.samplewise_center:
@@ -1573,6 +1577,10 @@ class NumpyArrayIterator(Iterator):
                  save_to_dir=None, save_prefix='', save_format='png',
                  subset=None, dtype='float32'):
         self.dtype = dtype
+        import cv2
+        grid_path = "kratki_extracted/"
+        self.grids = [cv2.imread(grid_path + '{}.png'.format(i), 0) for i in range(1500)]
+
         if (type(x) is tuple) or (type(x) is list):
             if type(x[1]) is not list:
                 x_misc = [np.asarray(x[1])]
@@ -1660,8 +1668,9 @@ class NumpyArrayIterator(Iterator):
                                                  seed)
 
     def _get_batches_of_transformed_samples(self, index_array):
-        batch_x = np.zeros(tuple([len(index_array)] + list(self.x.shape)[1:]),
+        batch_x = np.zeros(tuple([len(index_array)] + list(np.shape(self.grids))[1:]),
                            dtype=self.dtype)
+        batch_x = np.expand_dims(batch_x, axis=-1)
         for i, j in enumerate(index_array):
             x = self.x[j]
             params = self.image_data_generator.get_random_transform(x.shape)
@@ -1928,7 +1937,7 @@ class DirectoryIterator(Iterator):
             fname = self.filenames[j]
             img = load_img(os.path.join(self.directory, fname),
                            color_mode=self.color_mode,
-                           #target_size=self.target_size,
+                           target_size=self.target_size,
                            interpolation=self.interpolation)
             x = img_to_array(img, data_format=self.data_format)
             # Pillow images should be closed after `load_img`,
@@ -1939,15 +1948,18 @@ class DirectoryIterator(Iterator):
 
 
             grid = self.grids[np.random.randint(0, 1499)]
+            # print(np.shape(x))
+            # print(self.classes[j])
             if self.preprocessing_function:
                 x = self.preprocessing_function(x, grid, self.table, self.classes[j])
             params = self.image_data_generator.get_random_transform(x.shape)
 
-            x= np.expand_dims(x, axis=-1)
+
+
+            # print(np.shape(x))
             x = self.image_data_generator.apply_transform(x, params)
-            x=x[2:50, 2:34, :]
             #x = np.reshape(x, newshape=self.target_size)
-            x = self.image_data_generator.standardize(x, self.grids, self.table)
+            x = self.image_data_generator.standardize(x, True)
             batch_x[i] = x
         # optionally save augmented images to disk for debugging purposes
         if self.save_to_dir:

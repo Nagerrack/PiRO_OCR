@@ -9,7 +9,7 @@ from preprocessing import preprocess_func
 
 model = md.get_model()
 
-weight_path = 'weights/weights'
+weight_path = 'weights/weights2'
 
 model.load_weights(weight_path)
 

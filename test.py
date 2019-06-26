@@ -28,9 +28,11 @@ g = gen.flow_from_directory('numbers', target_size=(48,32), color_mode='grayscal
 #model = get_model()
 
 
-for i in range(50):
-    plt.imshow(g.next()[0][0].reshape(48,32))
-    plt.show()
+import cv2
+while cv2.waitKey(500) != ord('q'):
+
+    cv2.imshow('win', g.next()[0][0])
+
 model = keras.Sequential()
 model.add(InputLayer(input_shape=(48,32, 1)))
 model.add(Flatten())
