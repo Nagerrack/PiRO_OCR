@@ -41,7 +41,7 @@ weight_path = 'weights'
 
 epochs = 20
 
-model = md.get_model()
+model = md.get_model_v2()
 
 avg = model.get_weights()
 alpha = 0.7
@@ -53,7 +53,7 @@ for i in range(epochs):
     for j in range(len(avg)):
         avg[j] = avg[j] * alpha + (1 - alpha) * current[j]
 
-model.save_weights(weight_path + '/weights2')
+model.save_weights(weight_path + '/weightsV3-1')
 
 g_eval = gen.flow_from_directory('../numbers-test', target_size=(48, 32), classes=[str(i) for i in range(11)],
                                  color_mode='grayscale')
@@ -61,8 +61,8 @@ g_eval = gen.flow_from_directory('../numbers-test', target_size=(48, 32), classe
 score = model.evaluate_generator(g_eval)
 print(score)
 
-model2 = md.get_model()
+model2 = md.get_model_v2()
 model2.set_weights(avg)
-model2.save_weights(weight_path + '/weightsAvg2')
+model2.save_weights(weight_path + '/weightsAvgV3-1')
 score = model2.evaluate_generator(g_eval)
 print(score)

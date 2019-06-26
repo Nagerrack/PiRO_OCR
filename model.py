@@ -1,8 +1,10 @@
 import keras
 from keras.layers import *
-from keras import Model
+from keras import Model, Sequential
 from keras.optimizers import *
 from keras.losses import *
+
+
 def get_model(input_shape=(48, 32, 1), output_category_number=11):
     inputs = Input(input_shape)
     drop = Dropout(0.25)(inputs)
@@ -17,11 +19,9 @@ def get_model(input_shape=(48, 32, 1), output_category_number=11):
     bn2 = BatchNormalization()(conv1Alternative1_preAct)
     conv1Alternative1 = Activation('relu')(bn2)
 
-
     conv1Alternative2_preAct = Conv2D(32, 3, padding='same', kernel_initializer='he_normal')(conv1Alternative1)
     bn3 = BatchNormalization()(conv1Alternative2_preAct)
     conv1Alternative2 = Activation('relu')(bn3)
-
 
     pool1Alternative = MaxPooling2D(pool_size=(2, 2))(conv1Alternative2)
 
@@ -36,7 +36,6 @@ def get_model(input_shape=(48, 32, 1), output_category_number=11):
     conv2Alternative1_preAct = Conv2D(64, 3, padding='same', kernel_initializer='he_normal')(conv2)
     bn5 = BatchNormalization()(conv2Alternative1_preAct)
     conv2Alternative1 = Activation('relu')(bn5)
-
 
     conv2Alternative2_preAct = Conv2D(64, 3, padding='same', kernel_initializer='he_normal')(
         conv2Alternative1)
@@ -60,6 +59,35 @@ def get_model(input_shape=(48, 32, 1), output_category_number=11):
     out = Dense(output_category_number, activation='softmax')(dense2)
 
     model = Model(input=inputs, output=out)
+    model.compile(optimizer=Adam(lr=5e-04), loss=categorical_crossentropy, metrics=['accuracy'])
+
+    return model
+
+
+def get_model_v2(input_shape=(48, 32, 1), output_category_number=11):
+
+    model = Sequential()
+
+    model.add(Conv2D(32, kernel_size=(3, 3),
+                     activation='relu',
+                     input_shape=input_shape))
+
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(Dropout(0.25))
+
+    model.add(Flatten())
+
+    model.add(Dense(128, activation='relu'))
+
+    model.add(Dropout(0.25))
+
+    model.add(Dense(32, activation='relu'))
+
+    model.add(Dense(output_category_number, activation='softmax'))
+
     model.compile(optimizer=Adam(lr=5e-04), loss=categorical_crossentropy, metrics=['accuracy'])
 
     return model

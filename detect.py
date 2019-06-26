@@ -9,7 +9,7 @@ from preprocessing import preprocess_func
 
 model = md.get_model()
 
-weight_path = 'weights/weights2'
+weight_path = 'weights/weightsV2-1'
 
 model.load_weights(weight_path)
 
@@ -34,10 +34,10 @@ for index in indice_images:
 
         # prediction_list.append(model.predict(new_window))
         prediction = model.predict(new_window)
-        print(prediction)
+        #print(prediction)
         prediction_list.append(np.argmax(prediction))
-        plt.imshow(window, cmap='gray')
-        plt.show()
+        # plt.imshow(window, cmap='gray')
+        # plt.show()
         # print()
         # break
 
