@@ -798,7 +798,7 @@ class ImageDataGenerator(object):
         self.dtype = dtype
         import cv2
         grid_path = "kratki_extracted/"
-        self.grids = [cv2.imread(grid_path + '{}.png'.format(i), 0) for i in range(1500)]
+        self.grids = [cv2.imread(grid_path + '{}.png'.format(i), 0) for i in range(10000)]
 
         if data_format not in {'channels_last', 'channels_first'}:
             raise ValueError(
@@ -1120,7 +1120,7 @@ class ImageDataGenerator(object):
             The inputs, normalized.
         """
         if self.preprocessing_function and not dontUsePrep:
-            x = self.preprocessing_function(x, self.grids[np.random.randint(0,1499)])
+            x = self.preprocessing_function(x, self.grids[np.random.randint(0,9999)])
         if self.rescale:
             x = x* self.rescale
         if self.samplewise_center:
@@ -1579,7 +1579,7 @@ class NumpyArrayIterator(Iterator):
         self.dtype = dtype
         import cv2
         grid_path = "kratki_extracted/"
-        self.grids = [cv2.imread(grid_path + '{}.png'.format(i), 0) for i in range(1500)]
+        self.grids = [cv2.imread(grid_path + '{}.png'.format(i), 0) for i in range(10000)]
 
         if (type(x) is tuple) or (type(x) is list):
             if type(x[1]) is not list:
@@ -1873,7 +1873,7 @@ class DirectoryIterator(Iterator):
                           for i in np.arange(0, 256)]).astype("uint8")
         import cv2
         grid_path = "kratki_extracted/"
-        self.grids = [cv2.imread(grid_path+'{}.png'.format(i), 0)  for i in range(1500)]
+        self.grids = [cv2.imread(grid_path+'{}.png'.format(i), 0)  for i in range(10000)]
 
         if class_mode not in {'categorical', 'binary', 'sparse',
                               'input', None}:
@@ -1947,7 +1947,7 @@ class DirectoryIterator(Iterator):
 
 
 
-            grid = self.grids[np.random.randint(0, 1499)]
+            grid = self.grids[np.random.randint(0, 9999)]
             # print(np.shape(x))
             # print(self.classes[j])
             if self.preprocessing_function:

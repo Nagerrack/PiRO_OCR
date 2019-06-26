@@ -5,23 +5,32 @@ import matplotlib.pyplot as plt
 
 def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32, create_image_with_part_step=True):
     h = img.shape[0]
-    w = img.shape[1]
+
     assert h > w_height, "Image height is less than window height"
+
+
+    vccp = (h - w_height) // 2  # vertical_crop_corner_position
+
+    img = img[vccp:vccp + w_height,:]
+    #imgT = np.transpose(img)
+
+    addImg = cv2.imread('kratki_extracted/0.png', 0)
+    img = np.concatenate([addImg, img, addImg], axis=1)
+
+    w = img.shape[1]
     assert w > w_width, "Image width is less than window width"
     assert step_size > 1, "Step size must be grater than 1"
 
     itr_number = (w - w_width) // step_size + 1
     missing_full_step_pixels = (w - w_width) % step_size
-
-    vccp = (h - w_height) // 2  # vertical_crop_corner_position
     result = []
     for i in range(itr_number):
         hccp = i * step_size
-        crop_img = img[vccp:vccp + w_height, hccp:hccp + w_width]
+        crop_img = img[:, hccp:hccp + w_width]
         result.append(crop_img)
 
     if create_image_with_part_step and missing_full_step_pixels > 0:
-        crop_img = img[vccp:vccp + w_height, w - w_width:w]
+        crop_img = img[:, w - w_width:w]
         result.append(crop_img)
     return result
 

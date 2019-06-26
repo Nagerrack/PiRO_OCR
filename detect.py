@@ -9,18 +9,18 @@ from preprocessing import preprocess_func
 
 model = md.get_model()
 
-weight_path = 'weights/weightsV2-1'
+weight_path = 'weights/weightsAvg4'
 
 model.load_weights(weight_path)
 
-indice_images = main.get_indices(3)
+indice_images = main.get_indices(1)
 
 c = 0
 
 indice_images.pop(0)
 for index in indice_images:
-    plt.imshow(index, cmap='gray')
-    plt.show()
+    # plt.imshow(index, cmap='gray')
+    # plt.show()
 
     windows = nn_data_parser.slide_window(index)
 
@@ -34,13 +34,22 @@ for index in indice_images:
 
         # prediction_list.append(model.predict(new_window))
         prediction = model.predict(new_window)
-        #print(prediction)
-        prediction_list.append(np.argmax(prediction))
+        print(prediction)
+        prediction_list.append(prediction)
         # plt.imshow(window, cmap='gray')
         # plt.show()
         # print()
         # break
 
+    vals=[np.amax(pred) for pred in prediction_list]
+    steps = [4*ind for ind,pred in enumerate(prediction_list)]
+    maxes = [np.argmax(pred) for pred in prediction_list]
+    plt.scatter(steps, vals)
+    for i in range(len(vals)):
+        plt.annotate("{0}".format(maxes[i]), (steps[i], vals[i]))
+
+    plt.plot(steps, vals)
+    plt.show()
     print(prediction_list)
 
 
