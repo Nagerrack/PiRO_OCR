@@ -1,8 +1,8 @@
-import keras
+# import keras
 import model as md
 from DataAug import ImageDataGenerator
 from preprocessing import preprocess_func, prepr2
-import tensorflow as tf
+# import tensorflow as tf
 
 import numpy as np
 

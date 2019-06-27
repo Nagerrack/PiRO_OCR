@@ -1,9 +1,9 @@
 import numpy as np
 
-from Text_Area_Detector import show, detect_one_img
+from Text_Area_Detector import  detect_one_img#, show
 from image_io import *
 from surrounding_removal import remove_surrounding
-import copy as cp
+# import copy as cp
 from IndexWordDecisionProcess import decisionProcess
 
 
@@ -294,7 +294,7 @@ class Piromain():
         # print(self.edgesMean)
         # print(self.edgesVar)
         # print(self.mean)
-        print(np.sqrt(self.param))
+        # print(np.sqrt(self.param))
 
     def swap_channel(self, img):
 
@@ -364,19 +364,23 @@ class Piromain():
                 # plt.imshow(indImg)
                 # plt.show()
 
-    def main(self, i):
+    def main(self, i=None, path_to_image=None):
         # i+=12
-        imgs = read_particular_images("data", [i])
-        imgOrg = cp.deepcopy(imgs[0])
+        if path_to_image is None:
+
+            img = read_particular_images("data", [i])[0]
+        else:
+            img = cv2.imread(path_to_image)
+        #imgOrg = cp.deepcopy(imgs[0])
         # print(imgOrg.shape)
-        img = self.swap_channel(imgs[0])
+        img = self.swap_channel(img)
         ##show(img)
         orgRows, orgCols, chan = np.shape(img)
         img, deleted = remove_surrounding(img)
-        fromUp = self.itret(-1, -1, deleted['rows'], 1) + 1
-        fromDown = len(deleted['rows']) - self.itret(len(deleted['rows']), orgRows, deleted['rows'], -1)
-        fromLeft = self.itret(-1, -1, deleted['columns'], 1) + 1
-        fromRight = len(deleted['columns']) - self.itret(len(deleted['columns']), orgCols, deleted['columns'], -1)
+        # fromUp = self.itret(-1, -1, deleted['rows'], 1) + 1
+        # fromDown = len(deleted['rows']) - self.itret(len(deleted['rows']), orgRows, deleted['rows'], -1)
+        # fromLeft = self.itret(-1, -1, deleted['columns'], 1) + 1
+        # fromRight = len(deleted['columns']) - self.itret(len(deleted['columns']), orgCols, deleted['columns'], -1)
 
         ##show(img)
         # print(i)
@@ -391,10 +395,10 @@ class Piromain():
         ##show(img)
         rowsOfImg, colsOfImg = img.shape
         M = cv2.getRotationMatrix2D((colsOfImg / 2, rowsOfImg / 2), angle, 1)
-        MT = cv2.getRotationMatrix2D((colsOfImg / 2, rowsOfImg / 2), -angle, 1)
+        # MT = cv2.getRotationMatrix2D((colsOfImg / 2, rowsOfImg / 2), -angle, 1)
         # print(M)
         ##show(img)
-        img = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), borderValue=np.mean(img))
+        #img = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), borderValue=np.mean(img))
 
         ##show(img)
 
@@ -517,13 +521,13 @@ class Piromain():
         modeGroupMean = np.mean(
             [abs(wordsContsList[ind][0][1][0][1] - wordsContsList[ind][0][0][0][1]) for ind in modeIndices])
 
-        print(modeGroupMean)
+        # print(modeGroupMean)
         if modeGroupMean < 100 or modeGroupMean > 280:
             modeGroupMean = np.sqrt(self.param) * 3.2
         modeGroupBorderMean = np.mean([abs(
             wordsContsList[ind][0][0][0][1] - (wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0))
                                        for ind in modeIndices])
-        print(modeGroupBorderMean)
+        # print(modeGroupBorderMean)
 
         if modeGroupBorderMean < 30 or modeGroupBorderMean > 125:
             modeGroupBorderMean = np.sqrt(self.param) * 1.2
@@ -567,20 +571,21 @@ class Piromain():
                 state = decisionProcess(data, params)
                 # print(state)
 
-            imgIndex = img[rowsY[ind] - 30:rowsY[ind] + 30,
-                       wordsContsList[ind][0][0][0][1] - int(0.9 * data[0]) + 1:wordsContsList[ind][0][1][0][1] + int(
-                           0.9 * data[0]) + 1]
+            # imgIndex = img[rowsY[ind] - 30:rowsY[ind] + 30,
+            #            wordsContsList[ind][0][0][0][1] - int(0.9 * data[0]) + 1:wordsContsList[ind][0][1][0][1] + int(
+            #                0.9 * data[0]) + 1]
             imgIndex = img[rowsY[ind] - 30:rowsY[ind] + 30,
                        wordsContsList[ind][0][0][0][1]:wordsContsList[ind][0][1][0][
                            1]]
             # imgIndex = img[rowsY[ind]-30:rowsY[ind]+30, wordsContsList[ind][0][1][0][1]+int(0.9*data[0])+1:wordsContsList[ind][0][1][0][1]+int(0.9*data[0])+100]
             images.append(imgIndex)
+            #print(wordsContsList)
             #plt.imshow(imgIndex)
             #plt.show()
 
         ## UWAGA! Pierwszy INDEX to zazwyczaj NIE INDEX TYLKO OSTATNI WYRAZ Z NAGŁÓWKA LISTY -> przekazuje dalej
         # do odrzucenia tego case'u !
-        return images  ### TO TRZEBA RETURNOWAC TYLKO INACZEJ PĘTLE TRZEBA OBUDOWAC <-
+        return images, wordsContsList, modeWords  ### TO TRZEBA RETURNOWAC TYLKO INACZEJ PĘTLE TRZEBA OBUDOWAC <-
     # err = 0
     # errList=[]
     # for i in range(len(rowsCheck)):
@@ -592,9 +597,9 @@ class Piromain():
     # print(errList)
 
 
-def get_indices(number_of_image):
+def get_indices(number_of_image=None, path_to_image=None):
     m = Piromain()
-    return m.main(number_of_image)
+    return m.main(number_of_image, path_to_image)
 
 
 if __name__ == "__main__":

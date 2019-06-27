@@ -1,7 +1,7 @@
 import os
 
 import cv2
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 def read_image(path, filename):
@@ -29,10 +29,10 @@ def read_entire_data_set(path, pic_count):
     return pics
 
 
-def display_image(img, i):
-    plt.imshow(img, cmap='gray')
-
-    cv2.imwrite(str(i) + '.png', img)
-
-    plt.axis("off")
-    plt.show()
+# def display_image(img, i):
+#     plt.imshow(img, cmap='gray')
+#
+#     cv2.imwrite(str(i) + '.png', img)
+#
+#     plt.axis("off")
+#     plt.show()

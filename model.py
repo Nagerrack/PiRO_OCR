@@ -1,4 +1,3 @@
-import keras
 from keras.layers import *
 from keras import Model, Sequential
 from keras.optimizers import *

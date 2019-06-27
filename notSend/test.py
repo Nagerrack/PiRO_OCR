@@ -1,13 +1,12 @@
 from DataAug import ImageDataGenerator
 # import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.pyplot as plt
 from preprocessing import preprocess_func
 import keras
 from keras.layers import *
 from keras.optimizers import *
 from keras.losses import *
-from model import get_model
+# from model import get_model
 aug = {
         "rotation_range": 5.0,
         "width_shift_range": 0.05,

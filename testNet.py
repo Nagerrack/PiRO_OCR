@@ -2,13 +2,13 @@ import main
 import model as md
 import nn_data_parser
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import cv2
 from DataAug import ImageDataGenerator
 from preprocessing import preprocess_func
 model = md.get_model()
 
-weight_path = 'weights/weightsAvgV3-6_original_nodrop'
+weight_path = 'weights/weightsAvgV3-6_original_nodrop_Final'
 
 model.load_weights(weight_path)
 
@@ -37,13 +37,13 @@ for i in range(1000):
     for i in range(len(t[0])):
         toCheck = np.expand_dims(t[0][i], axis=0)
         pred=model.predict(toCheck)
-        print(np.argmax(pred))
-        plt.imshow(t[0][i][:,:,0])
-        plt.show()
+        # print(np.argmax(pred))
+        # plt.imshow(t[0][i][:,:,0])
+        # plt.show()
 
 
 #plt.imshow(img[0].reshape(48,32), cmap='gray')
 #plt.show()
-print(pred)
+# print(pred)
 
 

@@ -1,7 +1,7 @@
 import os
 import cv2
 import numpy as np
-import scipy.stats
+# import scipy.stats
 def extract(h,w, iter):
     gen = os.walk('kratki')
 

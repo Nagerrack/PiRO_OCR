@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32, create_image_with_part_step=True):
@@ -18,6 +18,9 @@ def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32,
     img = np.concatenate([addImg, img, addImg], axis=1)
 
     w = img.shape[1]
+    #print(w)
+    step_size = int(2.5 + w/120)
+    #print(step_size)
     assert w > w_width, "Image width is less than window width"
     assert step_size > 1, "Step size must be grater than 1"
 
@@ -32,7 +35,7 @@ def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32,
     if create_image_with_part_step and missing_full_step_pixels > 0:
         crop_img = img[:, w - w_width:w]
         result.append(crop_img)
-    return result
+    return result, w
 
 
 def aggregate_output_in_index(nn_outputs):
@@ -71,31 +74,31 @@ def aggregate(divided_nn_outputs):
 
 # TEST SECTION
 
-def test_method_1():
-    img = cv2.imread("data/raw_index/1.png")
-    imgs = slide_window(img, w_height=100, w_width=50)
-    plt.imshow(img, cmap='gray')
-    plt.show()
-    for item in imgs:
-        plt.imshow(item, cmap='gray')
-        plt.show()
+# def test_method_1():
+#     img = cv2.imread("data/raw_index/1.png")
+#     imgs = slide_window(img, w_height=100, w_width=50)
+#     plt.imshow(img, cmap='gray')
+#     plt.show()
+#     for item in imgs:
+#         plt.imshow(item, cmap='gray')
+#         plt.show()
 
-
-def test_method_2():
-    array = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
-             [0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0],  # 4
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
-             [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # 0
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
-             [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # 0
-             [0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0],  # 8
-             [0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0],  # 8
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
-             [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # 0
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
-             ]
-    print(aggregate_output_in_index(array))
-
-
-if __name__ == "__main__":
-    test_method_2()
+#
+# def test_method_2():
+#     array = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
+#              [0, 0, 0, 0, 100, 0, 0, 0, 0, 0, 0],  # 4
+#              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
+#              [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # 0
+#              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
+#              [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # 0
+#              [0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0],  # 8
+#              [0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0],  # 8
+#              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
+#              [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],  # 0
+#              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100],  # NaN
+#              ]
+#     print(aggregate_output_in_index(array))
+#
+#
+# if __name__ == "__main__":
+#     test_method_2()
