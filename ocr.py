@@ -1,5 +1,7 @@
 from detect import detect
 from pprint import pprint
+
+
 def ocr(path_to_img):
     weight_path = 'weights/weightsAvgV3-6_original_nodrop_Final'
     drawns = detect(path_to_img, weight_path)
@@ -13,6 +15,7 @@ def ocr(path_to_img):
     # print("-----------------------------")
 
     return result
+
 
 if __name__ == "__main__":
     ocr('data/img_1.jpg')

@@ -53,8 +53,6 @@ model.save_weights(weight_path + name_format)
 g_eval = gen.flow_from_directory('../numbers-test', target_size=(48, 32), classes=[str(i) for i in range(11)],
                                  color_mode='grayscale')
 
-
-
 score = model.evaluate_generator(g_eval)
 print(score)
 

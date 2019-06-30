@@ -1014,7 +1014,7 @@ class ImageDataGenerator(object):
             follow_links=follow_links,
             subset=subset,
             interpolation=interpolation,
-        preprocessing_function = self.preprocessing_function)
+            preprocessing_function=self.preprocessing_function)
 
     def flow_from_dataframe(self, dataframe, directory,
                             x_col="filename", y_col="class", has_ext=True,
@@ -1110,7 +1110,7 @@ class ImageDataGenerator(object):
                                  subset=subset,
                                  interpolation=interpolation)
 
-    def standardize(self, x, dontUsePrep = False):
+    def standardize(self, x, dontUsePrep=False):
         """Applies the normalization configuration to a batch of inputs.
 
         # Arguments
@@ -1120,9 +1120,9 @@ class ImageDataGenerator(object):
             The inputs, normalized.
         """
         if self.preprocessing_function and not dontUsePrep:
-            x = self.preprocessing_function(x, self.grids[np.random.randint(0,9999)])
+            x = self.preprocessing_function(x, self.grids[np.random.randint(0, 9999)])
         if self.rescale:
-            x = x* self.rescale
+            x = x * self.rescale
         if self.samplewise_center:
             x -= np.mean(x, keepdims=True)
         if self.samplewise_std_normalization:
@@ -1355,9 +1355,9 @@ class ImageDataGenerator(object):
                 'following the data format convention "' +
                 self.data_format + '" (channels on axis ' +
                 str(self.channel_axis) + '), i.e. expected '
-                'either 1, 3 or 4 channels on axis ' +
+                                         'either 1, 3 or 4 channels on axis ' +
                 str(self.channel_axis) + '. '
-                'However, it was passed an array with shape ' +
+                                         'However, it was passed an array with shape ' +
                 str(x.shape) + ' (' + str(x.shape[self.channel_axis]) +
                 ' channels).')
 
@@ -1472,7 +1472,7 @@ class Iterator(IteratorType):
                 self.image_shape = (3,) + self.target_size
         else:
             if self.data_format == 'channels_last':
-                self.image_shape = self.target_size + (1, )
+                self.image_shape = self.target_size + (1,)
             else:
                 self.image_shape = (1,) + self.target_size
         self.save_to_dir = save_to_dir
@@ -1643,10 +1643,10 @@ class NumpyArrayIterator(Iterator):
         if self.x.shape[channels_axis] not in {1, 3, 4}:
             warnings.warn('NumpyArrayIterator is set to use the '
                           'data format convention "' + data_format + '" '
-                          '(channels on axis ' + str(channels_axis) +
+                                                                     '(channels on axis ' + str(channels_axis) +
                           '), i.e. expected either 1, 3, or 4 '
                           'channels on axis ' + str(channels_axis) + '. '
-                          'However, it was passed an array with shape ' +
+                                                                     'However, it was passed an array with shape ' +
                           str(self.x.shape) + ' (' +
                           str(self.x.shape[channels_axis]) + ' channels).')
         if y is not None:
@@ -1726,6 +1726,7 @@ def _iter_valid_files(directory, white_list_formats, follow_links):
     # Yields
         Tuple of (root, filename) with extension in `white_list_formats`.
     """
+
     def _recursive_list(subpath):
         return sorted(os.walk(subpath, followlinks=follow_links),
                       key=lambda x: x[0])
@@ -1855,7 +1856,7 @@ class DirectoryIterator(Iterator):
                  subset=None,
                  interpolation='nearest',
                  dtype='float32',
-                 preprocessing_function = None):
+                 preprocessing_function=None):
         super(DirectoryIterator, self).common_init(image_data_generator,
                                                    target_size,
                                                    color_mode,
@@ -1868,12 +1869,12 @@ class DirectoryIterator(Iterator):
         self.directory = directory
         self.classes = classes
         invGamma = 1.0 / 0.25
-        self.preprocessing_function=preprocessing_function
+        self.preprocessing_function = preprocessing_function
         self.table = np.array([((i / 255.0) ** invGamma) * 255
-                          for i in np.arange(0, 256)]).astype("uint8")
+                               for i in np.arange(0, 256)]).astype("uint8")
         import cv2
         grid_path = "kratki_extracted/"
-        self.grids = [cv2.imread(grid_path+'{}.png'.format(i), 0)  for i in range(10000)]
+        self.grids = [cv2.imread(grid_path + '{}.png'.format(i), 0) for i in range(10000)]
 
         if class_mode not in {'categorical', 'binary', 'sparse',
                               'input', None}:
@@ -1945,8 +1946,6 @@ class DirectoryIterator(Iterator):
             if hasattr(img, 'close'):
                 img.close()
 
-
-
             grid = self.grids[np.random.randint(0, 9999)]
             # print(np.shape(x))
             # print(self.classes[j])
@@ -1954,11 +1953,9 @@ class DirectoryIterator(Iterator):
                 x = self.preprocessing_function(x, grid, self.table, self.classes[j])
             params = self.image_data_generator.get_random_transform(x.shape)
 
-
-
             # print(np.shape(x))
             x = self.image_data_generator.apply_transform(x, params)
-            #x = np.reshape(x, newshape=self.target_size)
+            # x = np.reshape(x, newshape=self.target_size)
             x = self.image_data_generator.standardize(x, True)
             batch_x[i] = x
         # optionally save augmented images to disk for debugging purposes

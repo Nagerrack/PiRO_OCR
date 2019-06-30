@@ -1,6 +1,8 @@
 import os
 
 import cv2
+
+
 # import matplotlib.pyplot as plt
 
 
@@ -27,7 +29,6 @@ def read_entire_data_set(path, pic_count):
         pics.append(read_image(path, "img_" + str(i) + ".jpg"))
 
     return pics
-
 
 # def display_image(img, i):
 #     plt.imshow(img, cmap='gray')

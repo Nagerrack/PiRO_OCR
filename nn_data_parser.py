@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+
+
 # import matplotlib.pyplot as plt
 
 
@@ -17,9 +19,9 @@ def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32,
     img = np.concatenate([addImg, img, addImg], axis=1)
 
     w = img.shape[1]
-    #print(w)
-    step_size = int(2.5 + w/120)
-    #print(step_size)
+    # print(w)
+    step_size = int(2.5 + w / 120)
+    # print(step_size)
     assert w > w_width, "Image width is less than window width"
     assert step_size > 1, "Step size must be grater than 1"
 
@@ -35,7 +37,6 @@ def slide_window(img, step_size: int = 4, w_height: int = 48, w_width: int = 32,
         crop_img = img[:, w - w_width:w]
         result.append(crop_img)
     return result, w
-
 
 # class LastMinuteMemory:
 #

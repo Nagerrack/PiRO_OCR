@@ -148,7 +148,7 @@ def detect_one_img(img, retNaive=False):
     # Draw text box
     box = cv2.boxPoints(ret)  # cv2.boxPoints(rect) for OpenCV 3.x
 
-    #M = cv2.getRotationMatrix2D((cx, cy), ang, 1.0)
+    # M = cv2.getRotationMatrix2D((cx, cy), ang, 1.0)
     if retNaive:
         min1, max1, min2, max2 = naive_approximate_rectanlge_points(er2, r_margin, lmargin=0.04)
         rect = img[min1:max1, min2:max2]

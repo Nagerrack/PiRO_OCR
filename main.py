@@ -1,6 +1,6 @@
 import numpy as np
 
-from Text_Area_Detector import  detect_one_img#, show
+from Text_Area_Detector import detect_one_img  # , show
 from image_io import *
 from surrounding_removal import remove_surrounding
 # import copy as cp
@@ -114,7 +114,7 @@ class Piromain():
                 ind = -2
             if contours[ind][0][0][1] > h * 0.01 and abs(
                     contours[ind][0][0][1] - contours[ind][1][0][1]) < h * 0.07 and abs(
-                    contours[ind][0][0][1] - contours[ind][1][0][1]) > h * 0.03 and contours[ind][1][0][1] < 0.1 * h:
+                contours[ind][0][0][1] - contours[ind][1][0][1]) > h * 0.03 and contours[ind][1][0][1] < 0.1 * h:
                 numb += 1
         if len(contours) > numb:
             i = 0
@@ -371,7 +371,7 @@ class Piromain():
             img = read_particular_images("data", [i])[0]
         else:
             img = cv2.imread(path_to_image)
-        #imgOrg = cp.deepcopy(imgs[0])
+        # imgOrg = cp.deepcopy(imgs[0])
         # print(imgOrg.shape)
         img = self.swap_channel(img)
         ##show(img)
@@ -398,7 +398,7 @@ class Piromain():
         # MT = cv2.getRotationMatrix2D((colsOfImg / 2, rowsOfImg / 2), -angle, 1)
         # print(M)
         ##show(img)
-        #img = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), borderValue=np.mean(img))
+        # img = cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), borderValue=np.mean(img))
 
         ##show(img)
 
@@ -526,14 +526,14 @@ class Piromain():
             modeGroupMean = np.sqrt(self.param) * 3.2
         modeGroupBorderMean = np.mean([abs(
             wordsContsList[ind][0][0][0][1] - (wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0))
-                                       for ind in modeIndices])
+            for ind in modeIndices])
         # print(modeGroupBorderMean)
 
         if modeGroupBorderMean < 30 or modeGroupBorderMean > 125:
             modeGroupBorderMean = np.sqrt(self.param) * 1.2
         allDistances = [abs(
             wordsContsList[ind][0][0][0][1] - (wordsContsList[ind][1][1][0][1] if len(wordsContsList[ind]) > 1 else 0))
-                        for ind, numb in enumerate(wordsNumbs)]
+            for ind, numb in enumerate(wordsNumbs)]
         allSizes = [abs(wordsContsList[ind][0][1][0][1] - wordsContsList[ind][0][0][0][1]) for ind, numb in
                     enumerate(wordsNumbs)]
         allBeforeSizes = [abs(wordsContsList[ind][1][1][0][1] - wordsContsList[ind][1][0][0][1]) if len(
@@ -579,9 +579,9 @@ class Piromain():
                            1]]
             # imgIndex = img[rowsY[ind]-30:rowsY[ind]+30, wordsContsList[ind][0][1][0][1]+int(0.9*data[0])+1:wordsContsList[ind][0][1][0][1]+int(0.9*data[0])+100]
             images.append(imgIndex)
-            #print(wordsContsList)
-            #plt.imshow(imgIndex)
-            #plt.show()
+            # print(wordsContsList)
+            # plt.imshow(imgIndex)
+            # plt.show()
 
         ## UWAGA! Pierwszy INDEX to zazwyczaj NIE INDEX TYLKO OSTATNI WYRAZ Z NAGŁÓWKA LISTY -> przekazuje dalej
         # do odrzucenia tego case'u !
